@@ -77,7 +77,7 @@ def symlink_directives(directives_files):
             file_name = os.path.split(f)[1]
             target_file_name = re.split(
                 "\.{0}".format(direc),
-                "{0}{1}".format(if hidden '.' else '', file_name)
+                "{0}{1}".format('.' if hidden else '', file_name)
             )[0]
             target_path = os.path.join(base_path, target_file_name)
             if (os.path.exists(target_path)):
@@ -104,16 +104,17 @@ def symlink_directives(directives_files):
             print("Symlinking {0} -> {1}".format(target_path, f))
             os.symlink(f, target_path)
 
-def validate_directives:
+def validate_directives():
     for direc in directives:
-        (path,) = directives[direc]
+        (direc_path, hidden) = directives[direc]
+        path = os.path.expandvars(direc_path)
         if (len(directives[direc]) != 2):
             print("Uh-oh, your directives appear to be malformed.")
             return False
 
         if (not os.path.exists(path)):
-            create = input("{0} does not exist.\n"
-                  + " Would you like to create it? [Y/n]: ".format(path))
+            create = input("{0} does not exist.\n".format(path)
+                  + " Would you like to create it? [Y/n]: ")
             if (create == 'n'):
                 return False
             print("Creating {0}".format(path))
