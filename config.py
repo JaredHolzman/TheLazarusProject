@@ -41,12 +41,12 @@ def remove (file_path):
         print("File {0} doesn't exist!".format(file_path))
 
 def backup (file_path):
-    file_name = os.path.split(path)[1]
+    file_name = os.path.split(file_path)[1]
     backup_path = os.path.join(CWD, 'backups', "{0}_backup".format(file_name))
     print("Backing up {0} -> {1}".format(file_path, backup_path))
     shutil.move(file_path, backup_path)
 
-def perform_action(action):
+def perform_action(action, target_path):
     if action == 'S':
         skip_all = True
         print('Skipping {0}'.format(target_path))
@@ -97,7 +97,7 @@ def symlink_directives(directives_files):
                         + "[b]ackup, [B]ackup all: "
                     )
                 
-                if (not perform_action(action)):
+                if (not perform_action(action, target_path)):
                     continue
 
             # It's symlinking time!
