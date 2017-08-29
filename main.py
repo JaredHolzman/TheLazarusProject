@@ -47,6 +47,11 @@ def run_install(layer):
     os.chdir(current_working_directory)
     return (layer, return_value)
 
+def walk_layers():
+    for root, dirs, files in os.walk('.'):
+        dirs[:] = [d for d in dirs if d not in exclude]
+        print (root)
+
 def main():
     layers = parse_layers()
     layer_validity_list = list(map(lambda layer: is_valid_layer(layer), layers))
