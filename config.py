@@ -4,10 +4,10 @@ import shutil
 import re
 
 # Directives to match on
-# file_extension: (target_path, prepend_to_file, append_to_file)
+# file_extension: (target_path, hidden)
 directives = {
-    'symh': ('$HOME/test', '.', ''),
-    'symc': ('$HOME/test/.config', '', '')
+    'symh': ('$HOME/test', True),
+    'symc': ('$HOME/test/.config', False)
 }
 
 CWD = os.getcwd()
@@ -32,73 +32,103 @@ def find_directive_matches():
 
 def remove (file_path):
     if os.file_path.isdir(file_path):
-        print ("Removing directory {0}".format(file_path))
+        print("Removing directory {0}".format(file_path))
         os.rmdir(file_path)
     elif os.file_path.isfile(file_path):
-        print ("Removing file {0}".format(file_path))
+        print("Removing file {0}".format(file_path))
         os.remove(file_path)
     else:
-        print ("File {0} doesn't exist!".format(file_path))
+        print("File {0} doesn't exist!".format(file_path))
 
 def backup (file_path):
     file_name = os.path.split(path)[1]
     backup_path = os.path.join(CWD, 'backups', "{0}_backup".format(file_name))
-    print ("Backing up {0} -> {1}".format(file_path, backup_path))
+    print("Backing up {0} -> {1}".format(file_path, backup_path))
     shutil.move(file_path, backup_path)
+
+def perform_action(action):
+    if action == 'S':
+        skip_all = True
+        print('Skipping {0}'.format(target_path))
+        return False
+    elif action == 's':
+        print('Skipping {0}'.format(target_path))
+        return False
+    elif action == 'R':
+        remove_all = True
+        remove(target_path)
+    elif action == 'r':
+        remove(target_path)
+    elif action == 'B':
+        backup_all = True
+        backup(target_path)
+    else:
+        backup(target_path)
+    return True 
 
 # Meat and potatoes of the operation, here we are symlinking all our configs
 # based on their directive
 def symlink_directives(directives_files):
     skip_all, remove_all, backup_all = False, False, False
     for direc in directives:
-        (path, prepend, append) = directives[direc]
+        (path, hidden) = directives[direc]
         base_path = os.path.expandvars(path)
         for f in directives_files[direc]:
             file_name = os.path.split(f)[1]
             target_file_name = re.split(
                 "\.{0}".format(direc),
-                "{0}{1}{2}".format(prepend,file_name,append)
+                "{0}{1}".format(if hidden '.' else '', file_name)
             )[0]
             target_path = os.path.join(base_path, target_file_name)
-            # TODO: check inode to see if same file
             if (os.path.exists(target_path)):
-                if skip_all:
-                    action = 's'
-                elif remove_all:
-                    action = 'o'
-                elif backup_all:
-                    action = 'b'
+                # Checks inode to see if same file
+                if (os.path.samefile(f, target_path)):
+                    print("Symlink {0} -> {1} already exists. Skipping"
+                          .format(target_path, f))
+                    continue
+                if skip_all: action = 's'
+                elif remove_all: action = 'o'
+                elif backup_all: action = 'b'
                 else:
                     action = input(
                         "Target {0} already exists, what do you want to do?\n"
                         .format(target_path)
                         + "[s]kip, [S]kip all, [r]emove, [R]emove all, "
-                        + "[b]ackup, [B]ackup all: ")
-
-                if action == 'S':
-                    skip_all = True
-                    print ('Skipping {0}'.format(target_path))
+                        + "[b]ackup, [B]ackup all: "
+                    )
+                
+                if (not perform_action(action)):
                     continue
-                elif action == 's':
-                    print ('Skipping {0}'.format(target_path))
-                    continue
-                elif action == 'R':
-                    remove_all = True
-                    remove(target_path)
-                elif action == 'r':
-                    remove(target_path)
-                elif action == 'B':
-                    backup_all = True
-                    backup(target_path)
-                else:
-                    backup(target_path)
 
-            print ("Symlinking {1} -> {0}".format(f, target_path))
-            os.symlink(f, target_path) 
+            # It's symlinking time!
+            print("Symlinking {0} -> {1}".format(target_path, f))
+            os.symlink(f, target_path)
+
+def validate_directives:
+    for direc in directives:
+        (path,) = directives[direc]
+        if (len(directives[direc]) != 2):
+            print("Uh-oh, your directives appear to be malformed.")
+            return False
+
+        if (not os.path.exists(path)):
+            create = input("{0} does not exist.\n"
+                  + " Would you like to create it? [Y/n]: ".format(path))
+            if (create == 'n'):
+                return False
+            print("Creating {0}".format(path))
+            os.makedirs(path)
+        elif (os.path.isfile(path)):
+            print("{0} is a file, but directives must specify a directory"
+                  .format(path))
+            return False
+    return True
+
 
 def main():
+    if (not validate_directives()):
+        return
     matches = find_directive_matches()
-    # print (matches)
     symlink_directives(matches)
 
 
