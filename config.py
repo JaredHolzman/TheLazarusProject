@@ -2,6 +2,7 @@
 import os
 import shutil
 import re
+import uuid
 
 # Directives to match on
 # file_extension: (target_path, hidden)
@@ -42,7 +43,16 @@ def remove (file_path):
 
 def backup (file_path):
     file_name = os.path.split(file_path)[1]
-    backup_path = os.path.join(CWD, 'backups', "{0}_backup".format(file_name))
+    backup_base_path = os.path.join(CWD, 'backups')
+    uid = uuid.uuid4().hex[:5]
+    # We are backing up files that were in possibly different directories
+    # now into one, so there are potential naming conflicts here.
+    # Rather than address the problem in a legitimate way, Imma just throw a
+    # uuid in there.
+    backup_path = os.path.join(backup_base_path,
+                               "{0}_{1}_backup".format(file_name, uid))
+    if (not os.path.exists(backup_base_path)):
+        os.makedirs(backup_base_path)
     print("Backing up {0} -> {1}".format(file_path, backup_path))
     shutil.move(file_path, backup_path)
 
@@ -82,10 +92,10 @@ def symlink_directives(directives_files):
             target_path = os.path.join(base_path, target_file_name)
             if (os.path.exists(target_path)):
                 # Checks inode to see if same file
-                if (os.path.samefile(f, target_path)):
-                    print("Symlink {0} -> {1} already exists. Skipping"
-                          .format(target_path, f))
-                    continue
+                # if (os.path.samefile(f, target_path)):
+                #     print("Symlink {0} -> {1} already exists. Skipping"
+                #           .format(target_path, f))
+                #     continue
                 if skip_all: action = 's'
                 elif remove_all: action = 'o'
                 elif backup_all: action = 'b'
@@ -96,7 +106,7 @@ def symlink_directives(directives_files):
                         + "[s]kip, [S]kip all, [r]emove, [R]emove all, "
                         + "[b]ackup, [B]ackup all: "
                     )
-                
+
                 if (not perform_action(action, target_path)):
                     continue
 
