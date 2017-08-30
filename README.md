@@ -1,6 +1,6 @@
 # Caravan
 
-Caravan make system setup and configuration easy. By operating on a system of directives, Caravan is generic enough to work out the box for most use cases and easy to extend to support more.
+Caravan makes system setup and configuration easy. By operating on a system of directives, Caravan is generic enough to work out the box for most use cases and easy enough to extend to support more.
 
 ## Layout
 Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system.
