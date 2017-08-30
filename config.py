@@ -32,10 +32,14 @@ def find_directive_matches():
     return matches
 
 def remove (file_path):
-    if os.file_path.isdir(file_path):
+    print(file_path)
+    if os.path.islink(file_path):
+        print("Removing link {0}".format(file_path))
+        os.remove(file_path)
+    elif os.path.isdir(file_path):
         print("Removing directory {0}".format(file_path))
-        os.rmdir(file_path)
-    elif os.file_path.isfile(file_path):
+        shutil.rmtree(file_path)
+    elif os.path.isfile(file_path):
         print("Removing file {0}".format(file_path))
         os.remove(file_path)
     else:
@@ -55,26 +59,6 @@ def backup (file_path):
         os.makedirs(backup_base_path)
     print("Backing up {0} -> {1}".format(file_path, backup_path))
     shutil.move(file_path, backup_path)
-
-def perform_action(action, target_path):
-    if action == 'S':
-        skip_all = True
-        print('Skipping {0}'.format(target_path))
-        return False
-    elif action == 's':
-        print('Skipping {0}'.format(target_path))
-        return False
-    elif action == 'R':
-        remove_all = True
-        remove(target_path)
-    elif action == 'r':
-        remove(target_path)
-    elif action == 'B':
-        backup_all = True
-        backup(target_path)
-    else:
-        backup(target_path)
-    return True 
 
 # Meat and potatoes of the operation, here we are symlinking all our configs
 # based on their directive
@@ -96,9 +80,12 @@ def symlink_directives(directives_files):
                 #     print("Symlink {0} -> {1} already exists. Skipping"
                 #           .format(target_path, f))
                 #     continue
-                if skip_all: action = 's'
-                elif remove_all: action = 'o'
-                elif backup_all: action = 'b'
+                if skip_all:
+                    action = 's'
+                elif remove_all:
+                    action = 'r'
+                elif backup_all:
+                    action = 'b'
                 else:
                     action = input(
                         "Target {0} already exists, what do you want to do?\n"
@@ -107,8 +94,23 @@ def symlink_directives(directives_files):
                         + "[b]ackup, [B]ackup all: "
                     )
 
-                if (not perform_action(action, target_path)):
+                if action == 'S':
+                    skip_all = True
+                    print('Skipping {0}'.format(target_path))
                     continue
+                elif action == 's':
+                    print('Skipping {0}'.format(target_path))
+                    continue
+                elif action == 'R':
+                    remove_all = True
+                    remove(target_path)
+                elif action == 'r':
+                    remove(target_path)
+                elif action == 'B':
+                    backup_all = True
+                    backup(target_path)
+                else:
+                    backup(target_path)
 
             # It's symlinking time!
             print("Symlinking {0} -> {1}".format(target_path, f))
