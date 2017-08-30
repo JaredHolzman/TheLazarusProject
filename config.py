@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
+
 import os
 import shutil
 import re
 import uuid
 
-# Directives to match on
-# {file_extension: (target_path, hidden)}
+# Link directives to match on. Matching files/directories will be symlinked
+# to their target_path
+# {directive: (target_path, hidden)}
 LINK_DIRECTIVES = {
     'symh': ('$HOME/test', True),
     'symc': ('$HOME/test/.config', False)
 }
-
+# Install directives to match on. These files be executed with their command
+# and argurments.
+# {directive: (command, ...arguments)}
+INSTALL_DIRECTIVES = {
+    'install' : ('sh','-c')
+}
+# Files/directories to ignore
+EXCLUDE = {'.git'}
 CWD = os.getcwd()
 
 def dict_from_keys(keys):
     return {key: [] for key in keys}
 
-def find_pattern_matches(patterns):
-    exclude = {'.git'}
+def find_pattern_matches(patterns, exclude):
     # Dictionary to add files/dirs to by their respecitive directives
     matches = dict_from_keys(patterns)
     for root, dirs, files in os.walk(CWD):
@@ -66,9 +74,9 @@ def backup (file_path):
     print("Backing up {0} -> {1}".format(file_path, backup_path))
     shutil.move(file_path, backup_path)
 
-# Meat and potatoes of the operation, here we are symlinking all our configs
+# Meat and potatoes of the operation, here we are symlinking all our dotfiles
 # based on their directive
-def handle_link_directives(directives_files):
+def handle_dotfiles(directives_files):
     skip_all, remove_all, backup_all = False, False, False
     for direc in LINK_DIRECTIVES:
         (path, hidden) = LINK_DIRECTIVES[direc]
@@ -122,6 +130,17 @@ def handle_link_directives(directives_files):
             print("Symlinking {0} -> {1}".format(target_path, f))
             os.symlink(f, target_path)
 
+def handle_installs(install_files):
+    for direc in INSTALL_DIRECTIVES:
+        (command) = INSTALL_DIRECTIVES[direc]
+        for install_file_path in install_files[direc]:
+            command_string = ' '.join(command + (install_file_path,))
+            print("Running {0}:\n".format(command_string))
+            os.system(command_string)
+            print()
+            
+
+
 def validate_link_directives():
     for direc in LINK_DIRECTIVES:
         (direc_path, hidden) = LINK_DIRECTIVES[direc]
@@ -146,12 +165,17 @@ def validate_link_directives():
 def dotfiles():
     if (not validate_link_directives()):
         return
-    matches = find_pattern_matches(LINK_DIRECTIVES.keys())
-    handle_link_directives(matches)
+    matches = find_pattern_matches(LINK_DIRECTIVES.keys(), EXCLUDE)
+    handle_dotfiles(matches)
+
+def installs():
+    installs = find_pattern_matches(INSTALL_DIRECTIVES.keys(), EXCLUDE)
+    handle_installs(installs)
 
 
 def main():
-    dotfiles()
+    # dotfiles()
+    installs()
 
 
 if __name__ == "__main__":
