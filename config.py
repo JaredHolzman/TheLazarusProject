@@ -76,10 +76,10 @@ def symlink_directives(directives_files):
             target_path = os.path.join(base_path, target_file_name)
             if (os.path.exists(target_path)):
                 # Checks inode to see if same file
-                # if (os.path.samefile(f, target_path)):
-                #     print("Symlink {0} -> {1} already exists. Skipping"
-                #           .format(target_path, f))
-                #     continue
+                if (os.path.samefile(f, target_path)):
+                    print("Symlink {0} -> {1} already exists. Skipping"
+                          .format(target_path, f))
+                    continue
                 if skip_all:
                     action = 's'
                 elif remove_all:
