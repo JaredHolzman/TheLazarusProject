@@ -13,3 +13,34 @@ Here are the ones that exist by default:
 * **.symc**: Any file ending in `.symc` will be symlinked to your `$HOME/.config` directory. 
 ### Install Directives
 * **.install**: Any file ending in `.install` will be run using `sh -c`. Files with this directive must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
+
+## Configuration
+Most of your configuration should be done in the `caravan.config` file. 
+* To add or edit any directive, modify `LINK_DIRECTIVES` and `INSTALL_DIRECTIVES`. 
+* To specifiy directories to be ignored, modify `EXCLUDE`
+
+## Usage
+```
+git clone https://github.com/JaredHolzman/caravan.git
+cd caravan
+./main.py
+```
+
+```
+usage: main.py [-h] [--install] [--dotfiles]
+
+caravan - system setup and configuration made easy
+
+optional arguments:
+  -h, --help  show this help message and exit
+  --install   Handle all install directives
+  --link  Handle all link directives
+```
+Install directives will always be handles before any link directives.
+
+## Next steps
+* Improve output formatting and add colors
+* Add a `bin` directive for symlinking to `/usr/bin`
+* Glob pattern matching support for EXCLUDE entries
+* Add os specific directives (e.g. maybe something like 'mac.install' would only run when `uname -s == 'darwin'`)
+

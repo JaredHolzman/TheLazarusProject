@@ -170,8 +170,8 @@ def main():
                                      + ' configuration made easy')
     parser.add_argument('--install', action='store_true',
                         help='Handle all install directives')
-    parser.add_argument('--dotfiles', action='store_true',
-                        help='Handle all dotfile directives')
+    parser.add_argument('--link', action='store_true',
+                        help='Handle all link directives')
 
     # Show help message if no arguments are passed
     if len(sys.argv[1:])==0:
@@ -183,7 +183,7 @@ def main():
 
     if (args.install):
         installs()
-    if (args.dotfiles):    
+    if (args.link):
         dotfiles()
 
 
