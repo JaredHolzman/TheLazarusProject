@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-user () {
-  printf "\r  [ \033[0;33m??\033[0m ] $1\n"
-}
-
-user "Type something please: "
-read -n 1 action
-echo "$action"
