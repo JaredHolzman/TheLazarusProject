@@ -5,21 +5,21 @@ import re
 import uuid
 
 # Directives to match on
-# file_extension: (target_path, hidden)
-directives = {
+# {file_extension: (target_path, hidden)}
+LINK_DIRECTIVES = {
     'symh': ('$HOME/test', True),
     'symc': ('$HOME/test/.config', False)
 }
 
 CWD = os.getcwd()
 
-def build_directive_dict():
-    return {key: [] for key in directives}
+def dict_from_keys(keys):
+    return {key: [] for key in keys}
 
-def find_directive_matches():
+def find_pattern_matches(patterns):
     exclude = {'.git'}
     # Dictionary to add files/dirs to by their respecitive directives
-    matches = build_directive_dict()
+    matches = dict_from_keys(patterns)
     for root, dirs, files in os.walk(CWD):
         dirs[:] = [d for d in dirs if d not in exclude]
         # Here we are matching on any files/directories that end in a directive
@@ -27,8 +27,14 @@ def find_directive_matches():
         # sub-directories as well, so you can have a directory matching one
         # directive and it's child matching another.
         for key in matches:
-            matches[key] += [os.path.join(root, d) for d in dirs if re.fullmatch(".*\.{0}".format(key), d) is not None]
-            matches[key] += [os.path.join(root, f) for f in files if re.fullmatch(".*\.{0}".format(key), f) is not None]
+            # Directories
+            matches[key] += [os.path.join(root, d) for d in dirs
+                             if re.fullmatch(".*\.{0}".format(key), d)
+                             is not None]
+            # Files
+            matches[key] += [os.path.join(root, f) for f in files
+                             if re.fullmatch(".*\.{0}".format(key), f)
+                             is not None]
     return matches
 
 def remove (file_path):
@@ -62,10 +68,10 @@ def backup (file_path):
 
 # Meat and potatoes of the operation, here we are symlinking all our configs
 # based on their directive
-def symlink_directives(directives_files):
+def handle_link_directives(directives_files):
     skip_all, remove_all, backup_all = False, False, False
-    for direc in directives:
-        (path, hidden) = directives[direc]
+    for direc in LINK_DIRECTIVES:
+        (path, hidden) = LINK_DIRECTIVES[direc]
         base_path = os.path.expandvars(path)
         for f in directives_files[direc]:
             file_name = os.path.split(f)[1]
@@ -116,11 +122,11 @@ def symlink_directives(directives_files):
             print("Symlinking {0} -> {1}".format(target_path, f))
             os.symlink(f, target_path)
 
-def validate_directives():
-    for direc in directives:
-        (direc_path, hidden) = directives[direc]
+def validate_link_directives():
+    for direc in LINK_DIRECTIVES:
+        (direc_path, hidden) = LINK_DIRECTIVES[direc]
         path = os.path.expandvars(direc_path)
-        if (len(directives[direc]) != 2):
+        if (len(LINK_DIRECTIVES[direc]) != 2):
             print("Uh-oh, your directives appear to be malformed.")
             return False
 
@@ -137,12 +143,15 @@ def validate_directives():
             return False
     return True
 
+def dotfiles():
+    if (not validate_link_directives()):
+        return
+    matches = find_pattern_matches(LINK_DIRECTIVES.keys())
+    handle_link_directives(matches)
+
 
 def main():
-    if (not validate_directives()):
-        return
-    matches = find_directive_matches()
-    symlink_directives(matches)
+    dotfiles()
 
 
 if __name__ == "__main__":
