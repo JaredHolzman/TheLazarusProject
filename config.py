@@ -22,6 +22,16 @@ INSTALL_DIRECTIVES = {
 EXCLUDE = {'.git'}
 CWD = os.getcwd()
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 def dict_from_keys(keys):
     return {key: [] for key in keys}
 
@@ -130,17 +140,6 @@ def handle_dotfiles(directives_files):
             print("Symlinking {0} -> {1}".format(target_path, f))
             os.symlink(f, target_path)
 
-def handle_installs(install_files):
-    for direc in INSTALL_DIRECTIVES:
-        (command) = INSTALL_DIRECTIVES[direc]
-        for install_file_path in install_files[direc]:
-            command_string = ' '.join(command + (install_file_path,))
-            print("Running {0}:\n".format(command_string))
-            os.system(command_string)
-            print()
-            
-
-
 def validate_link_directives():
     for direc in LINK_DIRECTIVES:
         (direc_path, hidden) = LINK_DIRECTIVES[direc]
@@ -161,6 +160,19 @@ def validate_link_directives():
                   .format(path))
             return False
     return True
+
+def handle_installs(install_files):
+    for direc in INSTALL_DIRECTIVES:
+        (command) = INSTALL_DIRECTIVES[direc]
+        for install_file_path in install_files[direc]:
+            if not os.access(install_file_path, os.X_OK):
+                print(bcolors.FAIL + "\"{0}\": Install file not executable!"
+                      .format(install_file_path) + bcolors.ENDC)
+                return False
+            command_string = ' '.join(command + (install_file_path,))
+            print("Running {0}:\n".format(command_string))
+            os.system(command_string)
+            print()
 
 def dotfiles():
     if (not validate_link_directives()):
