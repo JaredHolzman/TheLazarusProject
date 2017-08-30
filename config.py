@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
-import shutil
 import re
+import shutil
+import sys
 import uuid
 
 # Link directives to match on. Matching files/directories will be symlinked
@@ -186,8 +188,25 @@ def installs():
 
 
 def main():
-    # dotfiles()
-    installs()
+    parser = argparse.ArgumentParser(description='caravan - system setup and '
+                                     + ' configuration made easy')
+    parser.add_argument('--install', action='store_true',
+                        help='Handle all install directives')
+    parser.add_argument('--dotfiles', action='store_true',
+                        help='Handle all dotfile directives')
+
+    # Show help message if no arguments are passed
+    if len(sys.argv[1:])==0:
+        parser.print_help()
+        # parser.print_usage() # for just the usage line
+        parser.exit()
+
+    args = parser.parse_args()
+
+    if (args.install):
+        installs()
+    if (args.dotfiles):    
+        dotfiles()
 
 
 if __name__ == "__main__":
