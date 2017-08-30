@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo pacman -S git
+git config --global user.name "Jared Holzman"
+git config --global user.email "jared@holzman.io"
