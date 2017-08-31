@@ -130,7 +130,7 @@ def validate_link_directives():
 
         if (not os.path.exists(path)):
             create = input("{0} does not exist.\n".format(path)
-                  + " Would you like to create it? [Y/n]: ")
+                  + "Would you like to create it? [Y/n]: ")
             if (create == 'n'):
                 return False
             print("Creating {0}".format(path))

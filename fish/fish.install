@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+install_fish() {
+  pacman -Q fish > /dev/null
+  local installed=$?
+  if [ installed==0 ]
+  then
+    echo 'fish is already installed!'
+  else
+    sudo pacman -S fish
+    printf '%s' 'Successfully installed fish!'
+  fi
+}
+
+install_omf() {
+  local omf_dir="$HOME/.local/share/omf"
+  if [ -e $omf_dir ]
+  then
+      printf '%s %s\n' 'omf already installed at ' $omf_dir
+  else
+    curl -L https://get.oh-my.fish | fish
+    echo "omf install bobthefish" | fish
+    echo "omf theme bobthefish" | fish
+    chsh -s '/usr/bin/fish'
+  fi
+}
+
+install_fish
+install_omf
