@@ -1,0 +1,28 @@
+#!/bin/bash
+
+install_i3(){
+  pacman -Q i3-manjaro &> /dev/null
+  local installed=$?
+  if [ $installed == 0 ]
+  then
+    echo 'i3 is already installed.'
+  else
+    sudo pacman -S i3-manjaro
+    echo 'Successfully installed i3!'
+  fi
+}
+
+install_dunst(){
+  pacman -Q dunst &> /dev/null
+  local installed=$?
+  if [ $installed == 0 ]
+  then
+    echo 'dunst is already installed.'
+  else
+    sudo pacman -S dunst
+    echo 'Successfully installed dunst!'
+  fi
+}
+
+install_i3
+install_dunst
