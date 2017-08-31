@@ -1,0 +1,28 @@
+#!/bin/bash
+
+install_emacs(){
+  pacman -Q emacs > /dev/null
+  local installed=$?
+  if [ installed==0 ]
+  then
+    echo 'Emacs is already installed.'
+  else
+    sudo pacman -S emacs
+    echo 'Successfully installed Emacs!'
+  fi
+}
+
+install_spacemacs(){
+  if [ -e ~/.emacs.d/spacemacs.mk ]
+  then
+    echo 'Spacemacs is already installed.'
+  else
+    sudo pacman -S emacs
+    git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+    echo 'Successfully installed Spacemacs!'
+  fi
+}
+
+install_emacs
+install_spacemacs
+
