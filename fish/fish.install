@@ -3,7 +3,7 @@
 install_fish() {
   pacman -Q fish > /dev/null
   local installed=$?
-  if [ installed==0 ]
+  if [ $installed == $0 ]
   then
     echo 'fish is already installed!'
   else

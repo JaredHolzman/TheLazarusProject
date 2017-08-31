@@ -6,7 +6,7 @@ GIT_EMAIL='jared@holzman.io'
 install_git(){
   pacman -Q git &> /dev/null
   local installed=$?
-  if [ installed==0 ]
+  if [ $installed == 0 ]
   then
     echo 'git is already installed!'
   else

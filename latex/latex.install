@@ -3,7 +3,7 @@
 install_latex(){
   pacman -Q texlive-most &> /dev/null
   local installed=$?
-  if [ installed==0 ]
+  if [ $installed == 0 ]
   then
     echo 'Latex is already installed.'
   else

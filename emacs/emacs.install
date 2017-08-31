@@ -3,7 +3,7 @@
 install_emacs(){
   pacman -Q emacs &> /dev/null
   local installed=$?
-  if [ installed==0 ]
+  if [ $installed == 0 ]
   then
     echo 'Emacs is already installed.'
   else

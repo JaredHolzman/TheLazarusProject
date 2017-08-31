@@ -3,7 +3,7 @@
 install_slack(){
   pacman -Q slack-desktop &> /dev/null
   local installed=$?
-  if [ installed==0 ]
+  if [ $installed == 0 ]
   then
     echo 'Slack is already installed.'
   else

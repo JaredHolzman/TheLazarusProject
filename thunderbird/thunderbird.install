@@ -3,7 +3,7 @@
 install_thunderbird(){
   pacman -Q thunderbird &> /dev/null
   local installed=$?
-  if [ installed == 0 ]
+  if [ $installed == 0 ]
   then
     echo 'Thunderbird is already installed.'
   else
