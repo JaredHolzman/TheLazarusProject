@@ -1,0 +1,16 @@
+#!/bin/bash
+
+install_thunderbird(){
+  pacman -Q thunderbird &> /dev/null
+  local installed=$?
+  if [ installed == 0 ]
+  then
+    echo 'Thunderbird is already installed.'
+  else
+    sudo pacman -S thunderbird
+    echo 'Successfully installed Thunderbird!'
+  fi
+}
+
+install_thunderbird
+

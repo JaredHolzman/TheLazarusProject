@@ -1,7 +1,7 @@
 #!/bin/bash
 
 install_emacs(){
-  pacman -Q emacs > /dev/null
+  pacman -Q emacs &> /dev/null
   local installed=$?
   if [ installed==0 ]
   then
