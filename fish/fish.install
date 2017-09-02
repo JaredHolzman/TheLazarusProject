@@ -1,17 +1,5 @@
 #!/usr/bin/env bash
 
-install_fish() {
-  pacman -Q fish > /dev/null
-  local installed=$?
-  if [ $installed == 0 ]
-  then
-    echo 'fish is already installed!'
-  else
-    sudo pacman -S fish
-    echo 'Successfully installed fish!'
-  fi
-}
-
 install_omf() {
   local omf_dir="$HOME/.local/share/omf"
   if [ -e $omf_dir ]
@@ -25,5 +13,5 @@ install_omf() {
   fi
 }
 
-install_fish
+sudo pacman -S --needed fish
 install_omf

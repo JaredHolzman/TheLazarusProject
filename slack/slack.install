@@ -1,17 +1,5 @@
 #!/bin/bash
 
-install_slack(){
-  pacman -Q slack-desktop &> /dev/null
-  local installed=$?
-  if [ $installed == 0 ]
-  then
-    echo 'Slack is already installed.'
-  else
-    # slack-desktop is an AUR pkg, so we'll use yaourt to help
-    yaourt -S slack-desktop
-    echo 'Successfully installed Slack!'
-  fi
-}
-
-install_slack
+# slack-desktop is an AUR pkg, so we'll use yaourt to help
+yaourt -S --needed slack-desktop
 

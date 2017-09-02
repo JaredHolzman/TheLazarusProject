@@ -3,22 +3,13 @@
 GIT_USER_NAME='Jared Holzman'
 GIT_EMAIL='jared@holzman.io'
 
-install_git(){
-  pacman -Q git &> /dev/null
-  local installed=$?
-  if [ $installed == 0 ]
-  then
-    echo 'git is already installed!'
-  else
-    sudo pacman -S git
-    echo 'Successfully installed git!'
-  fi
-
+setup_git(){
   git config --global user.name "$GIT_USER_NAME"
   printf '%s \"%s\"\n' 'Set global git user name to' "$GIT_USER_NAME"
   git config --global user.email "$GIT_EMAIL"
   printf '%s \"%s\"\n' 'Set global git email to' "$GIT_EMAIL"
 }
 
-install_git
+sudo pacman -S --needed git
+setup_git
 
