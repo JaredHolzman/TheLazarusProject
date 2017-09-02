@@ -150,9 +150,12 @@ def handle_installs(install_files):
                       .format(install_file_path) + bcolors.ENDC)
                 return False
             command_string = ' '.join(command + (install_file_path,))
-            print("Running {0}:\n".format(command_string))
+            print("Running {0}:".format(command_string))
+            #print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                  # + bcolors.ENDC)
             os.system(command_string)
-            print()
+            print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+                  + bcolors.ENDC)
 
 def dotfiles():
     if (not validate_link_directives()):
