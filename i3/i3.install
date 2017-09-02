@@ -1,13 +1,13 @@
 #!/bin/bash
 
 install_i3(){
-  pacman -Q i3-manjaro &> /dev/null
+  pacman -Q manjaro-i3-settings &> /dev/null
   local installed=$?
   if [ $installed == 0 ]
   then
     echo 'i3 is already installed.'
   else
-    sudo pacman -S i3-manjaro
+    sudo pacman -S manjaro-i3-settings
     echo 'Successfully installed i3!'
   fi
 }
