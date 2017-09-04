@@ -78,7 +78,7 @@ def handle_dotfiles(directives_files):
                 "{0}{1}".format('.' if hidden else '', file_name)
             )[0]
             target_path = os.path.join(base_path, target_file_name)
-            if (os.path.exists(target_path)):
+            if (os.path.exists(target_path) or os.path.islink(target_path)):
                 # Checks inode to see if same file
                 if (os.path.samefile(f, target_path)):
                     print("Symlink {0} -> {1} already exists. Skipping"
@@ -118,7 +118,10 @@ def handle_dotfiles(directives_files):
 
             # It's symlinking time!
             print("Symlinking {0} -> {1}".format(target_path, f))
-            os.symlink(f, target_path)
+            try:
+                os.symlink(f, target_path)
+            except PermissionError:
+                os.system("sudo ln -s {0} {1}".format(f, target_path))
 
 def validate_link_directives():
     for direc in LINK_DIRECTIVES:
