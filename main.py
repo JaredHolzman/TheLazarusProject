@@ -15,10 +15,10 @@ CWD = os.getcwd()
 def dict_from_keys(keys):
     return {key: [] for key in keys}
 
-def find_pattern_matches(patterns, exclude):
+def find_pattern_matches(patterns, exclude, layer):
     # Dictionary to add files/dirs to by their respecitive directives
     matches = dict_from_keys(patterns)
-    for root, dirs, files in os.walk(CWD):
+    for root, dirs, files in os.walk(layer):
         dirs[:] = [d for d in dirs if d not in exclude]
         # Here we are matching on any files/directories that end in a directive
         # and adding them to matches. Something to note, this applies to all
@@ -154,21 +154,35 @@ def handle_installs(install_files):
                 return False
             command_string = ' '.join(command + (install_file_path,))
             print("Running {0}:".format(command_string))
-            #print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-                  # + bcolors.ENDC)
+            print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                  + bcolors.ENDC)
             os.system(command_string)
             print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
                   + bcolors.ENDC)
 
-def dotfiles():
+def dotfiles(layers):
     if (not validate_link_directives()):
         return
-    matches = find_pattern_matches(LINK_DIRECTIVES.keys(), EXCLUDE)
-    handle_dotfiles(matches)
+    for layer in layers:
 
-def installs():
-    installs = find_pattern_matches(INSTALL_DIRECTIVES.keys(), EXCLUDE)
-    handle_installs(installs)
+        matches = find_pattern_matches(LINK_DIRECTIVES.keys(), EXCLUDE, layer)
+        handle_dotfiles(matches)
+
+def installs(layers):
+    for layer in layers:
+        print(bcolors.OKBLUE
+              + "----------- Layer: {0} -----------".format(layer)
+              + bcolors.ENDC)
+        installs = find_pattern_matches(
+            INSTALL_DIRECTIVES.keys(), EXCLUDE,layer)
+        handle_installs(installs)
+
+def readLayers():
+    layers = []
+    with open('caravan.layers') as layers_file:
+        for layer in layers_file:
+            layers.append(layer.replace('\n', ''))
+    return layers
 
 
 def main():
@@ -187,10 +201,12 @@ def main():
 
     args = parser.parse_args()
 
+    layers = readLayers()
     if (args.install):
-        installs()
+        installs(layers)
     if (args.link):
-        dotfiles()
+        dotfiles(layers)
+
 
 
 if __name__ == "__main__":
