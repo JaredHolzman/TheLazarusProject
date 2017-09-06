@@ -37,7 +37,7 @@ def remove (file_path):
 
 def backup (file_path):
     file_name = os.path.split(file_path)[1]
-    backup_base_path = os.path.join(CWD, 'backups')
+    backup_base_path = path.abspath('backups')
     uid = uuid.uuid4().hex[:5]
     # We are backing up files that were in possibly different directories
     # now into one, so there are potential naming conflicts here.
