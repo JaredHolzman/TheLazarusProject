@@ -12,6 +12,7 @@ import uuid
 exec(open('caravan.config').read())
 
 CWD = os.getcwd()
+skip_all, remove_all, backup_all = False, False, False
 
 def dict_from_keys(keys):
     return {key: [] for key in keys}
@@ -68,23 +69,35 @@ def backup (file_path):
 # Meat and potatoes of the operation, here we are symlinking all our dotfiles
 # based on their directive
 def handle_link_directive(src, dest, layer, action=None):
-        if action == 's':
-            print('Skipping {0}'.format(dest))
-            return None
-        elif action == 'r':
-            remove(dest)
-        elif action is not None:
-            backup(dest)
+    global skip_all
+    global remove_all
+    global backup_all
+    if action == 'S':
+        skip_all = True
+        print('Skipping {0}'.format(dest))
+        return None
+    elif action == 's':
+        print('Skipping {0}'.format(dest))
+        return None
+    elif action == 'R':
+        remove_all = True
+        remove(dest)
+    elif action == 'r':
+        remove(dest)
+    elif action == 'B':
+        backup_all = True
+        backup(dest)
+    elif action is not None:
+        backup(dest)
 
-        # It's symlinking time!
-        print("Symlinking {0} -> {1}".format(src, dest))
-        try:
-            os.symlink(src, dest)
-        except PermissionError:
-            os.system("sudo ln -s {0} {1}".format(src, dest))
+    # It's symlinking time!
+    print("Symlinking {0} -> {1}".format(src, dest))
+    try:
+        os.symlink(src, dest)
+    except PermissionError:
+        os.system("sudo ln -s {0} {1}".format(src, dest))
 
-def validate_link(link_args, layer, skip_all=False, remove_all=False,
-                  backup_all=False):
+def validate_link(link_args, layer):
     if not len(link_args) == 2:
         print('The link directive takes two arguments,'
               + ' a source and destination.')
@@ -101,14 +114,9 @@ def validate_link(link_args, layer, skip_all=False, remove_all=False,
         os.makedirs(src)
 
     action = None
-    # Checks inode to see if same file
-    # if path.islink(dest):
     if path.exists(dest):
-        if path.samefile(src, dest):
-            print("Symlink {0} -> {1} already exists. Skipping"
-                  .format(src, dest))
-            action = 's'
-        elif skip_all:
+        # Checks inode to see if same file
+        if path.samefile(src, dest) or skip_all:
             action = 's'
         elif remove_all:
             action = 'r'
@@ -139,12 +147,10 @@ def handle_install_directive(install_file_path):
 def handle_directive(command, args, layer):
     if command == 'run':
         handle_install_directive(path.abspath(path.join(layer, args)))
-        pass
     elif command == 'link':
         link_args = args.split(' ')
         validated_args = validate_link(link_args, layer)
         if validated_args is not None:
-            print(validated_args)
             handle_link_directive(validated_args[0], validated_args[1],
                                   layer, validated_args[2])
     else:
