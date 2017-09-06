@@ -4,6 +4,6 @@ link:
   i3_config ~/.i3/config
   dmenurc ~/.dmenurc
   compton.conf ~/.config/compton.conf
-  dunst/dunstrc ~/.config/dunst/dunstrc
+  dunst ~/.config/dunst
   polybar ~/.config/polybar
   lightsOn.sh /usr/bin/lightsOn
