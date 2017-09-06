@@ -1,0 +1,9 @@
+run:
+  install
+link:
+  i3_config ~/.i3/config
+  dmenurc ~/.dmenurc
+  compton.conf ~/.config/compton.conf
+  dunst/dunstrc ~/.config/dunst/dunstrc
+  polybar ~/.config/polybar
+  lightsOn.sh /usr/bin/lightsOn

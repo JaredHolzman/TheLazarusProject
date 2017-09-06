@@ -1,0 +1,3 @@
+link:
+  bashrc ~/.bashrc
+  extend.bashrc ~/.extend.bashrc

@@ -1,0 +1,6 @@
+link:
+  extend.xinitrc ~/.extend.xinitrc
+  xinitrc ~/.xinitrc
+  extend.Xresources ~/.extend.Xresources
+  Xresources ~/.Xresources
+  xsession ~/.xsession
