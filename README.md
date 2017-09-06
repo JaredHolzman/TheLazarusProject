@@ -2,23 +2,22 @@
 
 Caravan makes system setup and configuration easy. By operating on a system of directives, Caravan is generic enough to work out the box for most use cases and easy enough to extend to support more.
 
-## Layout
-Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system.
+## Layers
+Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. You can specifiy which layers you'd like installed via the `caravan.layers` file.
 
 ## Directives
-Directives are what allows you easily manage all of your dotfiles and setup scripts. Directives can easily be added or changed by modifying the `LINK_DIRECTIVES` and `INSTALL_DIRECTIVES` in `config.py`. Any link directives are stripped at the time of symlinking.
-Here are the ones that exist by default:
-### Link Directives
-* **.symh**: Any file ending in `.symh` will be symlinked to your `$HOME` directory as a hidden file.
-* **.symc**: Any file ending in `.symc` will be symlinked to your `$HOME/.config` directory. 
-### Install Directives
-* **.install**: Any file ending in `.install` will be run using `sh -c`. Files with this directive must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
-
-## Configuration
-Most of your configuration should be done in the `caravan.config` file. 
-* To add or edit any directive, modify `LINK_DIRECTIVES` and `INSTALL_DIRECTIVES`. 
-* To specifiy directories to be ignored, modify `EXCLUDE`
-
+Directives are what allow you easily manage all of your dotfiles and setup scripts. Each layer has its own `caravan` file which give instructions to caravan on what to do with the files inside it. As an example, here is the `caravan` file for the **emacs** layer:
+```
+run:
+  install
+link:
+  spacemacs ~/.spacemacs
+```
+`caravan` files are read and executed in order and you are not limited to using each directive only once. For example, if you need to run something, link a file, and the run another file, that is totally fine.
+### Run Directive
+* Files specified by this directive must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
+### Link Directive
+* You write two arguments on each line under this directive, the first being the file in the layer you want to symlink and the second being the destination on the filesystem where you want to put the link
 ## Usage
 ```
 git clone https://github.com/JaredHolzman/caravan.git
@@ -27,18 +26,18 @@ cd caravan
 ```
 
 ```
-usage: main.py [-h] [--install] [--dotfiles]
+usage: main.py [-h] [--run] [--dotfiles]
 
 caravan - system setup and configuration made easy
 
 optional arguments:
   -h, --help  show this help message and exit
-  --install   Handle all install directives
+  --run   Handle all install directives
   --link  Handle all link directives
 ```
-Install directives will always be handles before any link directives.
 
 ## Next steps
+* Add support for a *depends* directive so that layers can be stacked
 * Improve output formatting and add colors
 * Add a `bin` directive for symlinking to `/usr/bin`
 * Glob pattern matching support for EXCLUDE entries
