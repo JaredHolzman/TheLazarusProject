@@ -44,7 +44,6 @@ optional arguments:
 ## Next steps
 * Add support for a *depends* directive so that layers can be stacked
 * Improve output formatting and add colors
-* Add a `bin` directive for symlinking to `/usr/bin`
 * Glob pattern matching support for EXCLUDE entries
-* Add os specific directives (e.g. maybe something like `*.mac.install` would only run when `uname -s == 'darwin'`)
+* Add some sort of support for OS specific directives
 
