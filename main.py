@@ -128,19 +128,21 @@ def handle_install_directive(install_file_path):
     print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
           + bcolors.ENDC)
 
-def handle_directive(command, args, layer):
+def handle_directive(command, args, layer, run, link):
     if command == 'run':
-        handle_install_directive(path.abspath(path.join(layer, args)))
+        if run:
+            handle_install_directive(path.abspath(path.join(layer, args)))
     elif command == 'link':
-        link_args = args.split(' ')
-        validated_args = validate_link(link_args, layer)
-        if validated_args is not None:
-            handle_link_directive(validated_args[0], validated_args[1],
-                                  layer, validated_args[2])
+        if link:
+            link_args = args.split(' ')
+            validated_args = validate_link(link_args, layer)
+            if validated_args is not None:
+                handle_link_directive(validated_args[0], validated_args[1],
+                                      layer, validated_args[2])
     else:
-        print("Unknown command: {0}".format(command))
+        print("Directive '{0}' not recognized.".format(command))
 
-def parse_caravan(layer):
+def parse_caravan(layer, run, link):
     if not os.path.exists(os.path.join(layer, 'caravan')):
         print("No caravan file in {0} layer, skipping.".format(layer))
         return
@@ -150,23 +152,23 @@ def parse_caravan(layer):
             if line.strip()[-1] == ':':
                 command = line.strip()
             elif command != '':
-                handle_directive(command[:-1], line.strip(), layer)
+                handle_directive(command[:-1], line.strip(), layer, run, link)
             else:
                 print('Error')
                 break
 
-def read_caravan_layers():
+def read_caravan_layers(run, link):
     with open('caravan.layers') as layers_file:
         for layer in layers_file:
             print(bcolors.OKBLUE
                   + "----------- Layer: {0} -----------".format(layer.strip())
                   + bcolors.ENDC)
-            parse_caravan(layer.strip())
+            parse_caravan(layer.strip(), run, link)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
                                      + ' configuration made easy')
-    parser.add_argument('--install', action='store_true',
+    parser.add_argument('--run', action='store_true',
                         help='Handle all install directives')
     parser.add_argument('--link', action='store_true',
                         help='Handle all link directives')
@@ -174,12 +176,11 @@ def main():
     # Show help message if no arguments are passed
     if len(sys.argv[1:])==0:
         parser.print_help()
-        # parser.print_usage() # for just the usage line
         parser.exit()
 
     args = parser.parse_args()
 
-    read_caravan_layers()
+    read_caravan_layers(args.run, args.link)
 
 
 if __name__ == "__main__":
