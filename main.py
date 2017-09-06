@@ -8,34 +8,18 @@ import shutil
 import sys
 import uuid
 
-# Hacky way to import config file
-exec(open('caravan.config').read())
+# Colors used for output messages
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
-CWD = os.getcwd()
 skip_all, remove_all, backup_all = False, False, False
-
-def dict_from_keys(keys):
-    return {key: [] for key in keys}
-
-def find_pattern_matches(patterns, exclude, layer):
-    # Dictionary to add files/dirs to by their respecitive directives
-    matches = dict_from_keys(patterns)
-    for root, dirs, files in os.walk(layer):
-        dirs[:] = [d for d in dirs if d not in exclude]
-        # Here we are matching on any files/directories that end in a directive
-        # and adding them to matches. Something to note, this applies to all
-        # sub-directories as well, so you can have a directory matching one
-        # directive and it's child matching another.
-        for key in matches:
-            # Directories
-            matches[key] += [os.path.join(root, d) for d in dirs
-                             if re.fullmatch(".*\.{0}".format(key), d)
-                             is not None]
-            # Files
-            matches[key] += [os.path.join(root, f) for f in files
-                             if re.fullmatch(".*\.{0}".format(key), f)
-                             is not None]
-    return matches
 
 def remove (file_path):
     print(file_path)
@@ -194,12 +178,6 @@ def main():
         parser.exit()
 
     args = parser.parse_args()
-
-    # layers = readLayers()
-    # if (args.install):
-    #     installs(layers)
-    # if (args.link):
-    #     dotfiles(layers)
 
     read_caravan_layers()
 
