@@ -20,6 +20,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 skip_all, remove_all, backup_all = False, False, False
+installed_layers = set()
 
 def remove (file_path):
     print(file_path)
@@ -139,13 +140,30 @@ def handle_directive(command, args, layer, run, link):
             if validated_args is not None:
                 handle_link_directive(validated_args[0], validated_args[1],
                                       layer, validated_args[2])
+    elif command == 'depends':
+        if args not in installed_layers:
+            parse_caravan(args, run, link, dependant=True)
     else:
         print("Directive '{0}' not recognized.".format(command))
 
-def parse_caravan(layer, run, link):
+def parse_caravan(layer, run, link, dependant=False):
+    global installed_layers
     if not os.path.exists(os.path.join(layer, 'caravan')):
         print("No caravan file in {0} layer, skipping.".format(layer))
-        return
+        return None
+    if layer in installed_layers:
+        print("{0} already installed".format(layer))
+        return None
+
+    if dependant:
+        print(bcolors.OKBLUE
+              + "Dependant Layer: {0} -----------".format(layer.strip())
+              + bcolors.ENDC)
+    else:
+        print(bcolors.OKBLUE
+              + "----------- Layer: {0} -----------".format(layer.strip())
+              + bcolors.ENDC)
+
     with open("{0}/caravan".format(layer)) as caravan:
         command = ''
         for line in caravan:
@@ -156,13 +174,15 @@ def parse_caravan(layer, run, link):
             else:
                 print('Error')
                 break
+    installed_layers.add(layer)
+    if dependant:
+        print(bcolors.OKBLUE
+              + "-----------------------------".format(layer.strip())
+              + bcolors.ENDC)
 
 def read_caravan_layers(run, link):
     with open('caravan.layers') as layers_file:
         for layer in layers_file:
-            print(bcolors.OKBLUE
-                  + "----------- Layer: {0} -----------".format(layer.strip())
-                  + bcolors.ENDC)
             parse_caravan(layer.strip(), run, link)
 
 def main():
@@ -181,6 +201,7 @@ def main():
     args = parser.parse_args()
 
     read_caravan_layers(args.run, args.link)
+    print(installed_layers)
 
 
 if __name__ == "__main__":
