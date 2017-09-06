@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from os import path
 import re
 import shutil
 import sys
@@ -66,124 +67,111 @@ def backup (file_path):
 
 # Meat and potatoes of the operation, here we are symlinking all our dotfiles
 # based on their directive
-def handle_dotfiles(directives_files):
-    skip_all, remove_all, backup_all = False, False, False
-    for direc in LINK_DIRECTIVES:
-        (path, hidden) = LINK_DIRECTIVES[direc]
-        base_path = os.path.expandvars(path)
-        for f in directives_files[direc]:
-            file_name = os.path.split(f)[1]
-            target_file_name = re.split(
-                "\.{0}".format(direc),
-                "{0}{1}".format('.' if hidden else '', file_name)
-            )[0]
-            target_path = os.path.join(base_path, target_file_name)
-            if (os.path.exists(target_path) or os.path.islink(target_path)):
-                # Checks inode to see if same file
-                if (os.path.samefile(f, target_path)):
-                    print("Symlink {0} -> {1} already exists. Skipping"
-                          .format(target_path, f))
-                    continue
-                if skip_all:
-                    action = 's'
-                elif remove_all:
-                    action = 'r'
-                elif backup_all:
-                    action = 'b'
-                else:
-                    action = input(
-                        "Target {0} already exists, what do you want to do?\n"
-                        .format(target_path)
-                        + "[s]kip, [S]kip all, [r]emove, [R]emove all, "
-                        + "[b]ackup, [B]ackup all: "
-                    )
+def handle_link_directive(src, dest, layer, action=None):
+        if action == 's':
+            print('Skipping {0}'.format(dest))
+            return None
+        elif action == 'r':
+            remove(dest)
+        elif action is not None:
+            backup(dest)
 
-                if action == 'S':
-                    skip_all = True
-                    print('Skipping {0}'.format(target_path))
-                    continue
-                elif action == 's':
-                    print('Skipping {0}'.format(target_path))
-                    continue
-                elif action == 'R':
-                    remove_all = True
-                    remove(target_path)
-                elif action == 'r':
-                    remove(target_path)
-                elif action == 'B':
-                    backup_all = True
-                    backup(target_path)
-                else:
-                    backup(target_path)
+        # It's symlinking time!
+        print("Symlinking {0} -> {1}".format(src, dest))
+        try:
+            os.symlink(src, dest)
+        except PermissionError:
+            os.system("sudo ln -s {0} {1}".format(src, dest))
 
-            # It's symlinking time!
-            print("Symlinking {0} -> {1}".format(target_path, f))
-            try:
-                os.symlink(f, target_path)
-            except PermissionError:
-                os.system("sudo ln -s {0} {1}".format(f, target_path))
+def validate_link(link_args, layer, skip_all=False, remove_all=False,
+                  backup_all=False):
+    if not len(link_args) == 2:
+        print('The link directive takes two arguments,'
+              + ' a source and destination.')
+        return None
+    link_args[0] = path.join(layer, link_args[0])
+    [src, dest] = [path.abspath(path.expandvars(path.expanduser(link)))
+                      for link in link_args]
+    if (not path.exists(src)):
+        create = input("Config file '{0}' does not exist.\n".format(src)
+                       + "Would you like to create it? [Y/n]: ")
+        if (create == 'n'):
+            return None
+        print("Creating '{0}'".format(src))
+        os.makedirs(src)
 
-def validate_link_directives():
-    for direc in LINK_DIRECTIVES:
-        (direc_path, hidden) = LINK_DIRECTIVES[direc]
-        path = os.path.expandvars(direc_path)
-        if (len(LINK_DIRECTIVES[direc]) != 2):
-            print("Uh-oh, your directives appear to be malformed.")
-            return False
+    action = None
+    # Checks inode to see if same file
+    # if path.islink(dest):
+    if path.exists(dest):
+        if path.samefile(src, dest):
+            print("Symlink {0} -> {1} already exists. Skipping"
+                  .format(src, dest))
+            action = 's'
+        elif skip_all:
+            action = 's'
+        elif remove_all:
+            action = 'r'
+        elif backup_all:
+            action = 'b'
+        else:
+            action = input(
+                "Target '{0}' already exists, what do you want to do?\n"
+                .format(dest)
+                + "[s]kip, [S]kip all, [r]emove, [R]emove all, "
+                + "[b]ackup, [B]ackup all: "
+            )
+    return (src, dest, action)
 
-        if (not os.path.exists(path)):
-            create = input("{0} does not exist.\n".format(path)
-                  + "Would you like to create it? [Y/n]: ")
-            if (create == 'n'):
-                return False
-            print("Creating {0}".format(path))
-            os.makedirs(path)
-        elif (os.path.isfile(path)):
-            print("{0} is a file, but directives must specify a directory"
-                  .format(path))
-            return False
-    return True
+def handle_install_directive(install_file_path):
+    if not os.access(install_file_path, os.X_OK):
+        print(bcolors.FAIL + "\"{0}\": Install file not executable!"
+              .format(install_file_path) + bcolors.ENDC)
+        return False
+    command_string = "sh -c {0}".format(install_file_path)
+    print("Running {0}:".format(command_string))
+    print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+          + bcolors.ENDC)
+    os.system(command_string)
+    print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+          + bcolors.ENDC)
 
-def handle_installs(install_files):
-    for direc in INSTALL_DIRECTIVES:
-        (command) = INSTALL_DIRECTIVES[direc]
-        for install_file_path in install_files[direc]:
-            if not os.access(install_file_path, os.X_OK):
-                print(bcolors.FAIL + "\"{0}\": Install file not executable!"
-                      .format(install_file_path) + bcolors.ENDC)
-                return False
-            command_string = ' '.join(command + (install_file_path,))
-            print("Running {0}:".format(command_string))
-            print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-                  + bcolors.ENDC)
-            os.system(command_string)
-            print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-                  + bcolors.ENDC)
+def handle_directive(command, args, layer):
+    if command == 'run':
+        handle_install_directive(path.abspath(path.join(layer, args)))
+        pass
+    elif command == 'link':
+        link_args = args.split(' ')
+        validated_args = validate_link(link_args, layer)
+        if validated_args is not None:
+            print(validated_args)
+            handle_link_directive(validated_args[0], validated_args[1],
+                                  layer, validated_args[2])
+    else:
+        print("Unknown command: {0}".format(command))
 
-def dotfiles(layers):
-    if (not validate_link_directives()):
+def parse_caravan(layer):
+    if not os.path.exists(os.path.join(layer, 'caravan')):
+        print("No caravan file in {0} layer, skipping.".format(layer))
         return
-    for layer in layers:
+    with open("{0}/caravan".format(layer)) as caravan:
+        command = ''
+        for line in caravan:
+            if line.strip()[-1] == ':':
+                command = line.strip()
+            elif command != '':
+                handle_directive(command[:-1], line.strip(), layer)
+            else:
+                print('Error')
+                break
 
-        matches = find_pattern_matches(LINK_DIRECTIVES.keys(), EXCLUDE, layer)
-        handle_dotfiles(matches)
-
-def installs(layers):
-    for layer in layers:
-        print(bcolors.OKBLUE
-              + "----------- Layer: {0} -----------".format(layer)
-              + bcolors.ENDC)
-        installs = find_pattern_matches(
-            INSTALL_DIRECTIVES.keys(), EXCLUDE,layer)
-        handle_installs(installs)
-
-def readLayers():
-    layers = []
+def read_caravan_layers():
     with open('caravan.layers') as layers_file:
         for layer in layers_file:
-            layers.append(layer.replace('\n', ''))
-    return layers
-
+            print(bcolors.OKBLUE
+                  + "----------- Layer: {0} -----------".format(layer.strip())
+                  + bcolors.ENDC)
+            parse_caravan(layer.strip())
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
@@ -201,12 +189,13 @@ def main():
 
     args = parser.parse_args()
 
-    layers = readLayers()
-    if (args.install):
-        installs(layers)
-    if (args.link):
-        dotfiles(layers)
+    # layers = readLayers()
+    # if (args.install):
+    #     installs(layers)
+    # if (args.link):
+    #     dotfiles(layers)
 
+    read_caravan_layers()
 
 
 if __name__ == "__main__":

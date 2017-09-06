@@ -1,0 +1,5 @@
+run:
+  emacs.install
+link:
+  spacemacs.symh ~/spacemacs2
+  test_thing ~/test_thing
