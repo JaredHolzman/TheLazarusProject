@@ -6,18 +6,23 @@ Caravan makes system setup and configuration easy. By operating on a system of d
 Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. You can specifiy which layers you'd like installed via the `caravan.layers` file.
 
 ## Directives
-Directives are what allow you easily manage all of your dotfiles and setup scripts. Each layer has its own `caravan` file which give instructions to caravan on what to do with the files inside it. As an example, here is the `caravan` file for the **emacs** layer:
+Directives are what allow you easily manage all of your dotfiles and setup scripts. Each layer has its own `caravan` file which give instructions to caravan on what to do with the files inside it. Here is a simple example
 ```
 run:
-  install
+  install_1
+  install_2
 link:
-  spacemacs ~/.spacemacs
+  random_file ~/.random_file
+  different_rando_file ~/.config/thing/rando_file
+  executable_i_like /usr/bin/do_a_thing
 ```
 `caravan` files are read and executed in order and you are not limited to using each directive only once. For example, if you need to run something, link a file, and the run another file, that is totally fine.
 ### Run Directive
 * Files specified by this directive must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
 ### Link Directive
-* You write two arguments on each line under this directive, the first being the file in the layer you want to symlink and the second being the destination on the filesystem where you want to put the link
+* This directive requires two arguments:
+** The file in the layer you want to symlink
+** The destination on the filesystem where you want to put that link
 ## Usage
 ```
 git clone https://github.com/JaredHolzman/caravan.git
