@@ -23,15 +23,18 @@ skip_all, remove_all, backup_all = False, False, False
 installed_layers = set()
 
 def remove (file_path):
-    if os.path.islink(file_path):
-        print("Removing link {0}".format(file_path))
-        os.remove(file_path)
+    if os.path.islink(file_path) or os.path.isfile(file_path):
+        print("Removing file {0}".format(file_path))
+        try:
+            os.remove(file_path)
+        except PermissionError:
+            os.system("sudo rm -f {0}".format(file_path))
     elif os.path.isdir(file_path):
         print("Removing directory {0}".format(file_path))
-        shutil.rmtree(file_path)
-    elif os.path.isfile(file_path):
-        print("Removing file {0}".format(file_path))
-        os.remove(file_path)
+        try:
+            shutil.rmtree(file_path)
+        except PermissionError:
+            os.system("sudo rm -rf {0}".format(file_path))
     else:
         print("File {0} doesn't exist!".format(file_path))
 
@@ -234,8 +237,6 @@ def main():
     args = parser.parse_args()
 
     read_caravan_layers(args.run, args.link)
-    print(installed_layers)
-
 
 if __name__ == "__main__":
     main()
