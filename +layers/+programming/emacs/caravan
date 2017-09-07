@@ -1,5 +1,5 @@
 run-arch:
-  install_emacs_arch
+  "sudo pacman -S --needed emacs"
 run-ubuntu:
   install_emacs_ubuntu
 run:

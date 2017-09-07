@@ -142,12 +142,15 @@ def handle_run_directive(command, install_file_path):
          or platform.uname().system != 'Linux')):
             return False
 
-    if not os.access(install_file_path, os.X_OK):
-        print(bcolors.FAIL + "\"{0}\": Install file not executable!"
-              .format(install_file_path) + bcolors.ENDC)
-        return False
-    command_string = "sh -c {0}".format(install_file_path)
-    print("Running {0}:".format(command_string))
+    if install_file_path.startswith('"') and install_file_path.endswith('"'):
+        command_string = "echo {0} | bash".format(install_file_path)
+    else:
+        if not os.access(install_file_path, os.X_OK):
+            print(bcolors.FAIL + "\"{0}\": Install file not executable!"
+                  .format(install_file_path) + bcolors.ENDC)
+            return False
+        command_string = "sh -c {0}".format(install_file_path)
+    print("Running {0}:".format(install_file_path))
     print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
           + bcolors.ENDC)
     os.system(command_string)
@@ -157,7 +160,10 @@ def handle_run_directive(command, install_file_path):
 def handle_directive(command, args, layer_path, run, link):
     if command.startswith('run'):
         if run:
-            handle_run_directive(command, path.join(layer_path, args))
+            if args.startswith('"') and args.endswith('"'):
+                handle_run_directive(command, args)
+            else:
+                handle_run_directive(command, path.join(layer_path, args))
     elif command == 'link':
         if link:
             link_args = args.split(' ')
