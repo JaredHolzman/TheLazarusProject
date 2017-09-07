@@ -3,6 +3,7 @@
 import argparse
 import os
 from os import path
+import platform
 import re
 import shutil
 import sys
@@ -155,7 +156,7 @@ def handle_directive(command, args, layer_path, run, link):
     elif command == 'depends':
         if args not in installed_layers:
             dependant_layer_path = find_layer(args)
-            parse_caravan(dependant_layer_path, run, link, dependant=True)
+            parse_caravan(dependant_layer_path, args, run, link, dependant=True)
     else:
         print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command))
 
@@ -213,6 +214,7 @@ def find_layer(layer_name):
               + "Please make all layer names unique and try again.")
         return None
     return matches[0]
+
 def read_caravan_layers(run, link):
     with open('caravan.layers') as layers_file:
         for layer_name in layers_file:
