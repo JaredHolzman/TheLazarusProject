@@ -129,7 +129,19 @@ def validate_link(link_args, layer_path):
         remove(dest)
     return (src, dest, action)
 
-def handle_install_directive(install_file_path):
+def handle_run_directive(command, install_file_path):
+    if command == 'run-mac' and platform.uname().system != 'Darwin':
+        return False
+    if command == 'run-ubuntu' and platform.linux_distribution()[0] != 'Ubuntu':
+        return False
+    # Hacky way to determine if platform is Arch where checking if
+    # linux_distribution fails. Bettery was would be to parse '/etc/os-release'
+    # or /etc/lsb-release
+    if (command == 'run-arch' and
+        (platform.linux_distribution()[0] != ''
+         or platform.uname().system != 'Linux')):
+            return False
+
     if not os.access(install_file_path, os.X_OK):
         print(bcolors.FAIL + "\"{0}\": Install file not executable!"
               .format(install_file_path) + bcolors.ENDC)
@@ -143,9 +155,9 @@ def handle_install_directive(install_file_path):
           + bcolors.ENDC)
 
 def handle_directive(command, args, layer_path, run, link):
-    if command == 'run':
+    if command.startswith('run'):
         if run:
-            handle_install_directive(path.join(layer_path, args))
+            handle_run_directive(command, path.join(layer_path, args))
     elif command == 'link':
         if link:
             link_args = args.split(' ')

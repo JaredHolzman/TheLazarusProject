@@ -1,4 +1,8 @@
+run-arch:
+  install_emacs_arch
+run-ubuntu:
+  install_emacs_ubuntu
 run:
-  install
+  install_spacemacs
 link:
   spacemacs ~/.spacemacs
