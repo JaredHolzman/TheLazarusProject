@@ -3,9 +3,9 @@
 Caravan makes system setup and configuration easy. By operating on a system of directives, Caravan is generic enough to work out the box for most use cases and easy enough to extend to support more.
 
 ## Layers
-Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. Every layer must have a `caravan` file in it, dictating how to install the layer to the system. If you wish to group similiar layers by topic in a common directory, put a `+` at the begining of the directory name so that Caravan know not treat it as a layer.
+Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. Every layer must have its own `caravan` file, dictating how to install the layer to the system. If you wish to group similiar layers by topic in a common directory, put a `+` at the begining of the directory name so that Caravan knows not treat it as a layer.
 
-You can specifiy which layers you'd like installed via the `caravan.layers` file.
+You can specify which layers you'd like installed via the `caravan.layers` file.
 
 ## Directives
 Directives are what allow you easily manage all of your dotfiles and setup scripts. Each layer has its own `caravan` file which give instructions to caravan on what to do with the files inside it. Here is a simple example
