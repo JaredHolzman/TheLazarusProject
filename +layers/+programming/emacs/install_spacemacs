@@ -1,0 +1,14 @@
+#!/bin/bash
+
+install_spacemacs(){
+  if [ -e ~/.emacs.d/spacemacs.mk ]
+  then
+    echo 'Spacemacs is already installed. Delete "~/.emacs.d" and try again if you wish to reinstall it.'
+  else
+    git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
+    echo 'Successfully installed Spacemacs!'
+  fi
+}
+
+install_spacemacs
+
