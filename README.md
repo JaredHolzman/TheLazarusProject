@@ -50,7 +50,7 @@ optional arguments:
 ```
 
 ## Next steps
-* Add support for a *depends* directive so that layers can be stacked
+* ~~Add support for a *depends* directive so that layers can be stacked~~
 * Improve output formatting and add colors
 * Add some sort of support for OS specific directives
 
