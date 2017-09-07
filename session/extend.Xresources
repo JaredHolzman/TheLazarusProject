@@ -38,7 +38,7 @@
 *color7:                          #E0E0E0
 *color15:                         #E8E8E8
 
-Xcursor.theme: 
+Xcursor.theme: Chameleon-Pearl-Large-0.5
 Xcursor.size:                     32
 
 XTerm*background:                 #272827

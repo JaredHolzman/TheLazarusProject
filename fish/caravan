@@ -1,4 +1,0 @@
-run:
-  install
-link:
-  config.fish ~/.config/fish/config.fish

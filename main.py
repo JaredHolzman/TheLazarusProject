@@ -23,7 +23,6 @@ skip_all, remove_all, backup_all = False, False, False
 installed_layers = set()
 
 def remove (file_path):
-    print(file_path)
     if os.path.islink(file_path):
         print("Removing link {0}".format(file_path))
         os.remove(file_path)
@@ -53,7 +52,7 @@ def backup (file_path):
 
 # Meat and potatoes of the operation, here we are symlinking all our dotfiles
 # based on their directive
-def handle_link_directive(src, dest, layer, action=None):
+def handle_link_directive(src, dest, action=None):
     global skip_all
     global remove_all
     global backup_all
@@ -82,17 +81,19 @@ def handle_link_directive(src, dest, layer, action=None):
     except PermissionError:
         os.system("sudo ln -s {0} {1}".format(src, dest))
 
-def validate_link(link_args, layer):
+def validate_link(link_args, layer_path):
     if not len(link_args) == 2:
         print('The link directive takes two arguments,'
               + ' a source and destination.')
         return None
-    link_args[0] = path.join(layer, link_args[0])
-    [src, dest] = [path.abspath(path.expandvars(path.expanduser(link)))
-                      for link in link_args]
+
+    src = path.join(layer_path, link_args[0])
+    dest = path.expandvars(path.expanduser(link_args[1]))
+    print(dest)
+
     if (not path.exists(src)):
-        create = input("Config file '{0}' does not exist.\n".format(src)
-                       + "Would you like to create it? [Y/n]: ")
+        create = input("Source file '{0}' does not exist in the layer.\n"
+                       .format(src) + "Would you like to create it? [Y/n]: ")
         if (create == 'n'):
             return None
         print("Creating '{0}'".format(src))
@@ -114,6 +115,14 @@ def validate_link(link_args, layer):
                 + "[s]kip, [S]kip all, [r]emove, [R]emove all, "
                 + "[b]ackup, [B]ackup all: "
             )
+    # path.exists follows symlinks, so if the path does not exist, but 'dest'
+    # is a link, then it is a broken link
+    elif path.islink(dest):
+        remove_broken = input("{0} appears to be a broken link.\n".format(dest)
+                              + 'Would you like to remove it? [Y/n]: ')
+        if remove_broken == 'n':
+            return None
+        remove(dest)
     return (src, dest, action)
 
 def handle_install_directive(install_file_path):
@@ -129,61 +138,85 @@ def handle_install_directive(install_file_path):
     print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
           + bcolors.ENDC)
 
-def handle_directive(command, args, layer, run, link):
+def handle_directive(command, args, layer_path, run, link):
     if command == 'run':
         if run:
-            handle_install_directive(path.abspath(path.join(layer, args)))
+            handle_install_directive(path.join(layer_path, args))
     elif command == 'link':
         if link:
             link_args = args.split(' ')
-            validated_args = validate_link(link_args, layer)
+            validated_args = validate_link(link_args, layer_path)
             if validated_args is not None:
                 handle_link_directive(validated_args[0], validated_args[1],
-                                      layer, validated_args[2])
+                                      action=validated_args[2])
     elif command == 'depends':
         if args not in installed_layers:
-            parse_caravan(args, run, link, dependant=True)
+            dependant_layer_path = find_layer(args)
+            parse_caravan(dependant_layer_path, run, link, dependant=True)
     else:
-        print("Directive '{0}' not recognized.".format(command))
+        print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command))
 
-def parse_caravan(layer, run, link, dependant=False):
+def parse_caravan(layer_path, layer_name, run, link, dependant=False):
     global installed_layers
-    if not os.path.exists(os.path.join(layer, 'caravan')):
-        print("No caravan file in {0} layer, skipping.".format(layer))
+    layer_caravan_path = path.join(layer_path, 'caravan')
+    if not os.path.exists(layer_caravan_path):
+        print("No caravan file in '{0}' layer, skipping.".format(layer_name))
         return None
-    if layer in installed_layers:
-        print("{0} already installed".format(layer))
+    if layer_name in installed_layers:
+        print("'{0}' already installed".format(layer_name))
         return None
 
     if dependant:
         print(bcolors.OKBLUE
-              + "Dependant Layer: {0} -----------".format(layer.strip())
+              + "Dependant Layer: {0} -----------".format(layer_name)
               + bcolors.ENDC)
     else:
         print(bcolors.OKBLUE
-              + "----------- Layer: {0} -----------".format(layer.strip())
+              + "----------- Layer: {0} -----------".format(layer_name)
               + bcolors.ENDC)
 
-    with open("{0}/caravan".format(layer)) as caravan:
+    with open(layer_caravan_path) as caravan:
         command = ''
         for line in caravan:
             if line.strip()[-1] == ':':
                 command = line.strip()
             elif command != '':
-                handle_directive(command[:-1], line.strip(), layer, run, link)
+                handle_directive(command[:-1], line.strip(), layer_path,
+                                 run, link)
             else:
-                print('Error')
-                break
-    installed_layers.add(layer)
+                print(bcolors.FAIL + 'There is something wrong with the'
+                      + " caravan file at '{0}'".format(layer_caravan_path))
+                return None
+    installed_layers.add(layer_name)
     if dependant:
         print(bcolors.OKBLUE
-              + "-----------------------------".format(layer.strip())
+              + "-----------------------------".format(layer_path.strip())
               + bcolors.ENDC)
 
+def find_layer(layer_name):
+    # Set of directories to be ignored
+    exclude = {'.git'}
+    matches = []
+    for root, dirs, files in os.walk(os.getcwd()):
+        # Modifies dirs in place to ignore directories in exclude
+        dirs[:] = [d for d in dirs if d not in exclude]
+        matches += [os.path.join(root, d) for d in dirs
+                    if d == layer_name and not d.startswith('+')]
+    if len(matches) == 0:
+        print("{0} layer not found!".format(layer_name))
+        return None
+    elif len(matches) > 1:
+        print("There appears to be duplicate layers:\n{0}\n".format(matches)
+              + "Please make all layer names unique and try again.")
+        return None
+    return matches[0]
 def read_caravan_layers(run, link):
     with open('caravan.layers') as layers_file:
-        for layer in layers_file:
-            parse_caravan(layer.strip(), run, link)
+        for layer_name in layers_file:
+            layer_path = find_layer(layer_name.strip())
+            if layer_path is None:
+                break
+            parse_caravan(layer_path, layer_name.strip(), run, link)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
