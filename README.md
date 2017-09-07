@@ -3,11 +3,16 @@
 Caravan makes system setup and configuration easy. By operating on a system of directives, Caravan is generic enough to work out the box for most use cases and easy enough to extend to support more.
 
 ## Layers
-Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. You can specifiy which layers you'd like installed via the `caravan.layers` file.
+Caravan is organized around layers. Group all your setup scripts and dotfiles into a single logical directory and you can use directives to link all of your configs wherever they need to go on your system. Every layer must have a `caravan` file in it, dictating how to install the layer to the system. If you wish to group similiar layers by topic in a common directory, put a `+` at the begining of the directory name so that Caravan know not treat it as a layer.
+
+You can specifiy which layers you'd like installed via the `caravan.layers` file.
 
 ## Directives
 Directives are what allow you easily manage all of your dotfiles and setup scripts. Each layer has its own `caravan` file which give instructions to caravan on what to do with the files inside it. Here is a simple example
 ```
+depends:
+  layer_1
+  layer_2
 run:
   install_1
   install_2
@@ -17,6 +22,9 @@ link:
   executable_i_like /usr/bin/do_a_thing
 ```
 `caravan` files are read and executed in order and you are not limited to using each directive only once. For example, if you need to run something, link a file, and the run another file, that is totally fine.
+### Depends Directive
+* This should be specified at the top of your caravan file and allows for layers to be composed of other layers. 
+* Caravan keeps track of what layers it has installed, so if multiple layers depend on the same layer, that layer will only be installed once
 ### Run Directive
 * Files specified by this directive must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
 ### Link Directive
