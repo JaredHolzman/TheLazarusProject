@@ -1,2 +1,2 @@
-run:
-  install
+run-arch:
+  "yaourt -S --needed --noconfirm slack-desktop"

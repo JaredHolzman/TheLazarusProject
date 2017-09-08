@@ -1,2 +1,2 @@
-run:
-  install
+run-arch:
+  "sudo pacman -S --needed --noconfirm thunderbird"

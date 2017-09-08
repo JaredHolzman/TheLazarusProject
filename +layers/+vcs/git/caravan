@@ -1,2 +1,6 @@
+run-arch:
+  "sudo pacman -S --needed --noconfirm git"
+run-ubuntu:
+  "sudo apt install -y git"
 run:
-  install
+  git_setup

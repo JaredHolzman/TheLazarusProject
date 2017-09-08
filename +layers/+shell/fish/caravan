@@ -1,4 +1,8 @@
+run-arch:
+  "sudo pacman -S --needed --noconfirm fish"
+run-ubuntu:
+  "sudo apt -y install fish"
 run:
-  install
+  install_omf
 link:
   config.fish ~/.config/fish/config.fish

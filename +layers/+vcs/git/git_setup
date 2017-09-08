@@ -10,6 +10,5 @@ setup_git(){
   printf '%s \"%s\"\n' 'Set global git email to' "$GIT_EMAIL"
 }
 
-sudo pacman -S --needed git
 setup_git
 

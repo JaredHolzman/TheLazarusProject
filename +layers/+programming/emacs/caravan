@@ -1,7 +1,7 @@
 run-arch:
-  "sudo pacman -S --needed emacs"
+  "sudo pacman -S --needed --noconfirm emacs"
 run-ubuntu:
-  install_emacs_ubuntu
+  "sudo apt -y install emacs"
 run:
   install_spacemacs
 link:

@@ -13,5 +13,4 @@ install_omf() {
   fi
 }
 
-sudo pacman -S --needed fish
 install_omf
