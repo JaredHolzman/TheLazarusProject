@@ -270,24 +270,25 @@ def topological_sort(graph):
     ordered = []
     visited = set()
     fully_explored = set()
-    nodes = list(graph.keys())
-    while (len(nodes) > 0):
-        node = nodes.pop()
-        is_dag = visit(node, graph, ordered, visited, fully_explored)
+    layers = list(graph.keys())
+    while (len(layers) > 0):
+        layer = layers.pop()
+        is_dag = visit(layer, None, graph, ordered, visited, fully_explored)
         if (not is_dag):
             return None
     return ordered
 
-def visit(layer, graph, ordered, visited, fully_explored):
+def visit(layer, parent_layer, graph, ordered, visited, fully_explored):
     if (layer in fully_explored):
         return True
     if (layer in visited):
-        print(bcolors.FAIL + "Error: {0} is involved in a circular dependeny".format(layer) + bcolors.ENDC)
+        print(bcolors.FAIL + "Error: {0} is involved in a circular dependeny"
+              .format(layer) + bcolors.ENDC)
         return False
     visited.add(layer)
     is_dag = True
     for dependency in graph[layer]:
-        is_dag = is_dag and visit(dependency, graph, ordered, visited,
+        is_dag = is_dag and visit(dependency, layer, graph, ordered, visited,
                                   fully_explored)
 
     fully_explored.add(layer)
