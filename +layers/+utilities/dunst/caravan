@@ -1,0 +1,4 @@
+run-arch:
+  "sudo pacman -S --needed --noconfirm dunst"
+link:
+  dunstrc ~/.config/dunst/dunstrc

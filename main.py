@@ -248,19 +248,49 @@ def get_deps(layer_name):
 
 
 def build_caravan_layer_graph():
-    dependancy_graph = defaultdict(set)
     root_layers = read_caravan_layers()
+    dependancy_graph = defaultdict(set)
     stack = []
+    visited = set()
 
     stack.extend(root_layers)
     while (len(stack) > 0):
         layer = stack.pop()
+        if layer not in dependancy_graph:
+            dependancy_graph[layer] = set()
         dependancies = get_deps(layer)
-        dependancy_graph[layer] = dependancy_graph[layer].union(dependancies)
+        for dependany in dependancies:
+            dependancy_graph[dependany].add(layer)
         if (dependancies is None):
             return None
-        stack.extend(dependancies)
+        if (layer not in visited):
+            visited.add(layer)
+            stack.extend(dependancies)
     print(dependancy_graph)
+    return dependancy_graph
+
+def topological_sort(graph):
+    ordered = []
+    visited = set()
+    fully_explored = set()
+    print(graph)
+    nodes = list(graph.keys())
+    while (len(nodes) > 0):
+        node = nodes.pop()
+        visit(node, ordered, visited, fully_explored)
+    print(ordered)
+
+def visit(layer, ordered, visited, fully_explored):
+    if (layer in fully_explored):
+        return None
+    if (layer in visited):
+        print('Error!')
+        return None
+    visited.add(layer)
+    for dependancy in get_deps(layer):
+        visit(dependancy, ordered, visited, fully_explored)
+    fully_explored.add(layer)
+    ordered.append(layer)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
@@ -278,7 +308,8 @@ def main():
     args = parser.parse_args()
 
     # read_caravan_layers(args.run, args.link)
-    build_caravan_layer_graph()
+    graph = build_caravan_layer_graph()
+    topological_sort(graph)
 
 if __name__ == "__main__":
     main()

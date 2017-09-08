@@ -1,0 +1,4 @@
+run-arch:
+  "yaourt -S --needed --noconfirm polybar-git"
+link:
+  config ~/.config/polybar/config
