@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# slack-desktop is an AUR pkg, so we'll use yaourt to help
-yaourt -S --needed --noconfirm slack-desktop
-
