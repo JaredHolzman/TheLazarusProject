@@ -28,14 +28,14 @@ link:
 * Caravan keeps track of what layers it has installed, so if multiple layers depend on the same layer, that layer will only be installed once
 ### Run Directive
 * Specify a file to be run
-** File must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
+  * File must be executable and have a command string at the top of the file (e.g. `#!/usr/bin/env bash`)
 * Wrap a line in double quotes to be run with bash
-** Good for simple operations
+  * Good for simple operations
 * Specify OS - sometimes you want to run different things for different OS's, here's how:
-** **run-mac** will only run on Mac
-** **run-ubuntu** will only run on Ubuntu
-** **run-arch** will only run on Arch
-** **run** will run on any platform
+  * **run-mac** will only run on Mac
+  * **run-ubuntu** will only run on Ubuntu
+  * **run-arch** will only run on Arch
+  * **run** will run on any platform
 ### Link Directive
 * This directive requires two arguments:
 ** The file in the layer you want to symlink
