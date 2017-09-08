@@ -242,7 +242,7 @@ def get_deps(layer_name):
     if parse_caravan is None:
         return None
     if (len(directives) > 0 and directives[0][0] == 'depends'):
-        print("{0}: {1}".format(layer_name, directives[0][1]))
+        # print("{0}: {1}".format(layer_name, directives[0][1]))
         return directives[0][1]
     return []
 
