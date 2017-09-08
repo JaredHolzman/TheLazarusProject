@@ -179,8 +179,31 @@ def handle_directive(command, args, layer_path, run, link):
     else:
         print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command) + bcolors.ENDC)
 
+def find_layer(layer_name):
+    # Set of directories to be ignored
+    exclude = {'.git'}
+    matches = []
+    for root, dirs, files in os.walk(os.getcwd()):
+        # Modifies dirs in place to ignore directories in exclude
+        dirs[:] = [d for d in dirs if d not in exclude]
+        matches += [os.path.join(root, d) for d in dirs
+                    if d == layer_name and not d.startswith('+')]
+    if len(matches) == 0:
+        print(bcolors.FAIL + "Error: layer '{0}' could not be found"
+              .format(layer_name) + bcolors.ENDC)
+        return None
+    elif len(matches) > 1:
+        print(bcolors.WARNING + "There appears to be duplicate layers:\n{0}\n"
+              .format(matches) + 'Please make all layer names unique and'
+              + ' try again.' + bcolors.ENDC)
+        return None
+    return matches[0]
+
 # [(directive, [lines])]
-def parse_caravan(layer_name, layer_path):
+def parse_caravan(layer_name):
+    layer_path = find_layer(layer_name)
+    if layer_path is None:
+        return None
     layer_caravan_path = path.join(layer_path, 'caravan')
     if not os.path.exists(layer_caravan_path):
         print(bcolors.FAIL + "Error: No caravan file in '{0}' layer."
@@ -207,24 +230,6 @@ def parse_caravan(layer_name, layer_path):
             command = line.strip()
     return directives
 
-def find_layer(layer_name):
-    # Set of directories to be ignored
-    exclude = {'.git'}
-    matches = []
-    for root, dirs, files in os.walk(os.getcwd()):
-        # Modifies dirs in place to ignore directories in exclude
-        dirs[:] = [d for d in dirs if d not in exclude]
-        matches += [os.path.join(root, d) for d in dirs
-                    if d == layer_name and not d.startswith('+')]
-    if len(matches) == 0:
-        print("{0} layer not found!".format(layer_name))
-        return None
-    elif len(matches) > 1:
-        print("There appears to be duplicate layers:\n{0}\n".format(matches)
-              + "Please make all layer names unique and try again.")
-        return None
-    return matches[0]
-
 def read_caravan_layers():
     layers = []
     with open('caravan.layers') as layers_file:
@@ -232,12 +237,9 @@ def read_caravan_layers():
     return layers
 
 def get_deps(layer_name):
-    layer_path = find_layer(layer_name)
-    if layer_path is None:
-        print(bcolors.FAIL + "Error: layer '{0}' could not be found"
-              .format(layer_name) + bcolors.ENDC)
+    directives = parse_caravan(layer_name)
+    if directives is None:
         return None
-    directives = parse_caravan(layer_name, layer_path)
     if parse_caravan is None:
         return None
     if (len(directives) > 0 and directives[0][0] == 'depends'):
@@ -257,10 +259,10 @@ def build_caravan_layer_graph():
         if layer not in dependency_graph:
             dependency_graph[layer] = set()
         dependencies = get_deps(layer)
-        for dependeny in dependencies:
-            dependency_graph[dependeny].add(layer)
         if (dependencies is None):
             return None
+        for dependeny in dependencies:
+            dependency_graph[dependeny].add(layer)
         if (layer not in visited):
             visited.add(layer)
             stack.extend(dependencies)
@@ -312,6 +314,8 @@ def main():
 
     # read_caravan_layers(args.run, args.link)
     graph = build_caravan_layer_graph()
+    if graph is None:
+        return
     ordered = topological_sort(graph)
     print(ordered)
 
