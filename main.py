@@ -177,14 +177,14 @@ def handle_directive(command, args, layer_path, run, link):
             dependent_layer_path = find_layer(args)
             parse_caravan(dependent_layer_path, args, run, link, dependent=True)
     else:
-        print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command))
+        print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command) + bcolors.ENDC)
 
 # [(directive, [lines])]
 def parse_caravan(layer_name, layer_path):
     layer_caravan_path = path.join(layer_path, 'caravan')
     if not os.path.exists(layer_caravan_path):
         print(bcolors.FAIL + "Error: No caravan file in '{0}' layer."
-              .format(layer_name))
+              .format(layer_name) + bcolors.ENDC)
         return None
     directives = []
     with open(layer_caravan_path) as caravan:
@@ -200,7 +200,7 @@ def parse_caravan(layer_name, layer_path):
                 command_lines.append(line.strip())
             else:
                 print(bcolors.FAIL + "Error: caravan file for '{0}' layer"
-                      .format(layer_name) + ' malformed.')
+                      .format(layer_name) + ' malformed.' + bcolors.ENDC)
                 return None
         if command != '' and len(command_lines) > 0:
             directives.append((command, command_lines))
@@ -225,7 +225,6 @@ def find_layer(layer_name):
         return None
     return matches[0]
 
-# [(layer_name, layer_path)]
 def read_caravan_layers():
     layers = []
     with open('caravan.layers') as layers_file:
@@ -236,13 +235,12 @@ def get_deps(layer_name):
     layer_path = find_layer(layer_name)
     if layer_path is None:
         print(bcolors.FAIL + "Error: layer '{0}' could not be found"
-              .format(layer_name))
+              .format(layer_name) + bcolors.ENDC)
         return None
     directives = parse_caravan(layer_name, layer_path)
     if parse_caravan is None:
         return None
     if (len(directives) > 0 and directives[0][0] == 'depends'):
-        # print("{0}: {1}".format(layer_name, directives[0][1]))
         return directives[0][1]
     return []
 
@@ -266,31 +264,35 @@ def build_caravan_layer_graph():
         if (layer not in visited):
             visited.add(layer)
             stack.extend(dependencies)
-    print(dependency_graph)
     return dependency_graph
 
 def topological_sort(graph):
     ordered = []
     visited = set()
     fully_explored = set()
-    print(graph)
     nodes = list(graph.keys())
     while (len(nodes) > 0):
         node = nodes.pop()
-        visit(node, graph, ordered, visited, fully_explored)
-    print(ordered)
+        is_dag = visit(node, graph, ordered, visited, fully_explored)
+        if (not is_dag):
+            return None
+    return ordered
 
 def visit(layer, graph, ordered, visited, fully_explored):
     if (layer in fully_explored):
-        return None
+        return True
     if (layer in visited):
-        print('Error!')
-        return None
+        print(bcolors.FAIL + "Error: {0} is involved in a circular dependeny".format(layer) + bcolors.ENDC)
+        return False
     visited.add(layer)
+    is_dag = True
     for dependency in graph[layer]:
-        visit(dependency, graph, ordered, visited, fully_explored)
+        is_dag = is_dag and visit(dependency, graph, ordered, visited,
+                                  fully_explored)
+
     fully_explored.add(layer)
     ordered.insert(0, layer)
+    return is_dag
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
@@ -309,7 +311,8 @@ def main():
 
     # read_caravan_layers(args.run, args.link)
     graph = build_caravan_layer_graph()
-    topological_sort(graph)
+    ordered = topological_sort(graph)
+    print(ordered)
 
 if __name__ == "__main__":
     main()
