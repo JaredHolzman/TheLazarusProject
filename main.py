@@ -250,8 +250,6 @@ def install_layer(layer_name):
                 return False
     return True
     
-    
-
 def read_caravan_layers():
     layers = []
     with open('caravan.layers') as layers_file:
@@ -265,7 +263,6 @@ def get_deps(layer_name):
     if (len(directives) > 0 and directives[0][0] == 'depends'):
         return directives[0][1]
     return []
-
 
 def build_caravan_layer_graph():
     root_layers = read_caravan_layers()
@@ -318,21 +315,6 @@ def visit(layer, parent_layer, graph, ordered, visited, fully_explored):
     return is_dag
 
 def main():
-    parser = argparse.ArgumentParser(description='caravan - system setup and '
-                                     + ' configuration made easy')
-    parser.add_argument('--run', action='store_true',
-                        help='Handle all install directives')
-    parser.add_argument('--link', action='store_true',
-                        help='Handle all link directives')
-
-    # Show help message if no arguments are passed
-    if len(sys.argv[1:])==0:
-        parser.print_help()
-        parser.exit()
-
-    args = parser.parse_args()
-
-    # read_caravan_layers(args.run, args.link)
     graph = build_caravan_layer_graph()
     if (graph is None):
         return
