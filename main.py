@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import os
 from os import path
 import platform
@@ -195,6 +195,7 @@ def parse_caravan(layer_name, layer_path):
                 if command != '' and len(command_lines) > 0:
                     directives.append((command, command_lines))
                 command = line.strip()[:-1]
+                command_lines = []
             elif command != '':
                 command_lines.append(line.strip())
             else:
@@ -228,35 +229,38 @@ def find_layer(layer_name):
 def read_caravan_layers():
     layers = []
     with open('caravan.layers') as layers_file:
-        for line in layers_file:
-            layer_name = line.strip()
-            layer_path = find_layer(layer_name.strip())
-            if layer_path is None:
-                print(bcolors.FAIL + "Error: layer '{0}' could not be found"
-                      .format(layer_name))
-                return None
-            layers.append((layer_name, layer_path))
+        layers = [layer.strip() for layer in layers_file.readlines()]
     return layers
 
-def build_caravan_layer_graph():
-    root_layers = read_caravan_layers()
-    if root_layers is None:
+def get_deps(layer_name):
+    layer_path = find_layer(layer_name)
+    if layer_path is None:
+        print(bcolors.FAIL + "Error: layer '{0}' could not be found"
+              .format(layer_name))
         return None
+    directives = parse_caravan(layer_name, layer_path)
+    if parse_caravan is None:
+        return None
+    if (len(directives) > 0 and directives[0][0] == 'depends'):
+        print("{0}: {1}".format(layer_name, directives[0][1]))
+        return directives[0][1]
+    return []
 
-    print(root_layers)
 
-    layers_directives = OrderedDict()
-    for (layer_name, layer_path) in root_layers:
-        parsed_caravan = parse_caravan(layer_name, layer_path)
-        if parse_caravan is None:
+def build_caravan_layer_graph():
+    dependancy_graph = defaultdict(set)
+    root_layers = read_caravan_layers()
+    stack = []
+
+    stack.extend(root_layers)
+    while (len(stack) > 0):
+        layer = stack.pop()
+        dependancies = get_deps(layer)
+        dependancy_graph[layer] = dependancy_graph[layer].union(dependancies)
+        if (dependancies is None):
             return None
-        layers_directives[layer_name] = parsed_caravan
-
-    print(layers_directives)
-    for layer_name in layers_directives:
-        directives = layers_directives[layer_name]
-        if (len(directives) > 0 and directives[0][0] == 'depends'):
-            print(directives)
+        stack.extend(dependancies)
+    print(dependancy_graph)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
