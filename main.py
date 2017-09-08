@@ -174,8 +174,8 @@ def handle_directive(command, args, layer_path, run, link):
                                       action=validated_args[2])
     elif command == 'depends':
         if args not in installed_layers:
-            dependant_layer_path = find_layer(args)
-            parse_caravan(dependant_layer_path, args, run, link, dependant=True)
+            dependent_layer_path = find_layer(args)
+            parse_caravan(dependent_layer_path, args, run, link, dependent=True)
     else:
         print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command))
 
@@ -249,25 +249,25 @@ def get_deps(layer_name):
 
 def build_caravan_layer_graph():
     root_layers = read_caravan_layers()
-    dependancy_graph = defaultdict(set)
+    dependency_graph = defaultdict(set)
     stack = []
     visited = set()
 
     stack.extend(root_layers)
     while (len(stack) > 0):
         layer = stack.pop()
-        if layer not in dependancy_graph:
-            dependancy_graph[layer] = set()
-        dependancies = get_deps(layer)
-        for dependany in dependancies:
-            dependancy_graph[dependany].add(layer)
-        if (dependancies is None):
+        if layer not in dependency_graph:
+            dependency_graph[layer] = set()
+        dependencies = get_deps(layer)
+        for dependeny in dependencies:
+            dependency_graph[dependeny].add(layer)
+        if (dependencies is None):
             return None
         if (layer not in visited):
             visited.add(layer)
-            stack.extend(dependancies)
-    print(dependancy_graph)
-    return dependancy_graph
+            stack.extend(dependencies)
+    print(dependency_graph)
+    return dependency_graph
 
 def topological_sort(graph):
     ordered = []
@@ -277,20 +277,20 @@ def topological_sort(graph):
     nodes = list(graph.keys())
     while (len(nodes) > 0):
         node = nodes.pop()
-        visit(node, ordered, visited, fully_explored)
+        visit(node, graph, ordered, visited, fully_explored)
     print(ordered)
 
-def visit(layer, ordered, visited, fully_explored):
+def visit(layer, graph, ordered, visited, fully_explored):
     if (layer in fully_explored):
         return None
     if (layer in visited):
         print('Error!')
         return None
     visited.add(layer)
-    for dependancy in get_deps(layer):
-        visit(dependancy, ordered, visited, fully_explored)
+    for dependency in graph[layer]:
+        visit(dependency, graph, ordered, visited, fully_explored)
     fully_explored.add(layer)
-    ordered.append(layer)
+    ordered.insert(0, layer)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
