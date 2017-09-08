@@ -157,27 +157,32 @@ def handle_run_directive(command, install_file_path):
     os.system(command_string)
     print(bcolors.HEADER + "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
           + bcolors.ENDC)
+    return True
 
-def handle_directive(command, args, layer_path, run, link):
+def handle_directive(layer_name, command, args):
+    layer_path = find_layer(layer_name)
+    if layer_path is None:
+        return False
     if command.startswith('run'):
-        if run:
-            if args.startswith('"') and args.endswith('"'):
-                handle_run_directive(command, args)
-            else:
-                handle_run_directive(command, path.join(layer_path, args))
+        if args.startswith('"') and args.endswith('"'):
+            handle_run_directive(command, args)
+        else:
+            handle_run_directive(command, path.join(layer_path, args))
     elif command == 'link':
-        if link:
-            link_args = args.split(' ')
-            validated_args = validate_link(link_args, layer_path)
-            if validated_args is not None:
-                handle_link_directive(validated_args[0], validated_args[1],
-                                      action=validated_args[2])
+        link_args = args.split(' ')
+        validated_args = validate_link(link_args, layer_path)
+        if validated_args is not None:
+            handle_link_directive(validated_args[0], validated_args[1],
+                                  action=validated_args[2])
     elif command == 'depends':
-        if args not in installed_layers:
-            dependent_layer_path = find_layer(args)
-            parse_caravan(dependent_layer_path, args, run, link, dependent=True)
+        print(bcolors.FAIL + "Error: 'depends' directive must come first."
+              .format(command) + bcolors.ENDC)
+        return False
     else:
-        print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command) + bcolors.ENDC)
+        print(bcolors.FAIL + "Error: Directive '{0}' not recognized."
+              .format(command) + bcolors.ENDC)
+        return False
+    return True
 
 def find_layer(layer_name):
     # Set of directories to be ignored
@@ -230,6 +235,23 @@ def parse_caravan(layer_name):
             command = line.strip()
     return directives
 
+def install_layer(layer_name):
+    print(layer_name)
+    directives = parse_caravan(layer_name)
+    print(directives)
+    if directives is None:
+        return False
+    if (len(directives) > 0 and directives[0][0] == 'depends'):
+        directives = directives[:1]
+    for directive in directives:
+        for lines in directive[1]:
+            no_errors = handle_directive(layer_name, directive[0], lines)
+            if (not no_errors):
+                return False
+    return True
+    
+    
+
 def read_caravan_layers():
     layers = []
     with open('caravan.layers') as layers_file:
@@ -239,8 +261,6 @@ def read_caravan_layers():
 def get_deps(layer_name):
     directives = parse_caravan(layer_name)
     if directives is None:
-        return None
-    if parse_caravan is None:
         return None
     if (len(directives) > 0 and directives[0][0] == 'depends'):
         return directives[0][1]
@@ -314,10 +334,16 @@ def main():
 
     # read_caravan_layers(args.run, args.link)
     graph = build_caravan_layer_graph()
-    if graph is None:
+    if (graph is None):
         return
     ordered = topological_sort(graph)
-    print(ordered)
+    if (ordered is None):
+        return None
+    # stuff = [parse_caravan(thing) for thing in ordered]
+    for layer_name in ordered:
+        no_errors = install_layer(layer_name)
+        if (not no_errors):
+            return False
 
 if __name__ == "__main__":
     main()
