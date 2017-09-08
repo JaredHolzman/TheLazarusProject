@@ -282,8 +282,8 @@ def visit(layer, parent_layer, graph, ordered, visited, fully_explored):
     if (layer in fully_explored):
         return True
     if (layer in visited):
-        print(bcolors.FAIL + "Error: {0} is involved in a circular dependeny"
-              .format(layer) + bcolors.ENDC)
+        print(bcolors.FAIL + "Error: Circular Dependeny between {0} and {1}"
+              .format(layer, parent_layer) + bcolors.ENDC)
         return False
     visited.add(layer)
     is_dag = True

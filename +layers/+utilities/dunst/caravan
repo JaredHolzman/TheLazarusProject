@@ -1,5 +1,3 @@
-depends:
-  i3
 run-arch:
   "sudo pacman -S --needed --noconfirm dunst"
 link:
