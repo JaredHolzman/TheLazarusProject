@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+from collections import OrderedDict
 import os
 from os import path
 import platform
@@ -178,42 +179,32 @@ def handle_directive(command, args, layer_path, run, link):
     else:
         print(bcolors.FAIL + "Directive '{0}' not recognized.".format(command))
 
-def parse_caravan(layer_path, layer_name, run, link, dependant=False):
-    global installed_layers
+# [(directive, [lines])]
+def parse_caravan(layer_name, layer_path):
     layer_caravan_path = path.join(layer_path, 'caravan')
     if not os.path.exists(layer_caravan_path):
-        print("No caravan file in '{0}' layer, skipping.".format(layer_name))
+        print(bcolors.FAIL + "Error: No caravan file in '{0}' layer."
+              .format(layer_name))
         return None
-    if layer_name in installed_layers:
-        print("'{0}' already installed".format(layer_name))
-        return None
-
-    if dependant:
-        print(bcolors.OKBLUE
-              + "Dependant Layer: {0} -----------".format(layer_name)
-              + bcolors.ENDC)
-    else:
-        print(bcolors.OKBLUE
-              + "----------- Layer: {0} -----------".format(layer_name)
-              + bcolors.ENDC)
-
+    directives = []
     with open(layer_caravan_path) as caravan:
         command = ''
+        command_lines =[]
         for line in caravan:
             if line.strip()[-1] == ':':
-                command = line.strip()
+                if command != '' and len(command_lines) > 0:
+                    directives.append((command, command_lines))
+                command = line.strip()[:-1]
             elif command != '':
-                handle_directive(command[:-1], line.strip(), layer_path,
-                                 run, link)
+                command_lines.append(line.strip())
             else:
-                print(bcolors.FAIL + 'There is something wrong with the'
-                      + " caravan file at '{0}'".format(layer_caravan_path))
+                print(bcolors.FAIL + "Error: caravan file for '{0}' layer"
+                      .format(layer_name) + ' malformed.')
                 return None
-    installed_layers.add(layer_name)
-    if dependant:
-        print(bcolors.OKBLUE
-              + "-----------------------------".format(layer_path.strip())
-              + bcolors.ENDC)
+        if command != '' and len(command_lines) > 0:
+            directives.append((command, command_lines))
+            command = line.strip()
+    return directives
 
 def find_layer(layer_name):
     # Set of directories to be ignored
@@ -233,13 +224,39 @@ def find_layer(layer_name):
         return None
     return matches[0]
 
-def read_caravan_layers(run, link):
+# [(layer_name, layer_path)]
+def read_caravan_layers():
+    layers = []
     with open('caravan.layers') as layers_file:
-        for layer_name in layers_file:
+        for line in layers_file:
+            layer_name = line.strip()
             layer_path = find_layer(layer_name.strip())
             if layer_path is None:
-                break
-            parse_caravan(layer_path, layer_name.strip(), run, link)
+                print(bcolors.FAIL + "Error: layer '{0}' could not be found"
+                      .format(layer_name))
+                return None
+            layers.append((layer_name, layer_path))
+    return layers
+
+def build_caravan_layer_graph():
+    root_layers = read_caravan_layers()
+    if root_layers is None:
+        return None
+
+    print(root_layers)
+
+    layers_directives = OrderedDict()
+    for (layer_name, layer_path) in root_layers:
+        parsed_caravan = parse_caravan(layer_name, layer_path)
+        if parse_caravan is None:
+            return None
+        layers_directives[layer_name] = parsed_caravan
+
+    print(layers_directives)
+    for layer_name in layers_directives:
+        directives = layers_directives[layer_name]
+        if (len(directives) > 0 and directives[0][0] == 'depends'):
+            print(directives)
 
 def main():
     parser = argparse.ArgumentParser(description='caravan - system setup and '
@@ -256,7 +273,8 @@ def main():
 
     args = parser.parse_args()
 
-    read_caravan_layers(args.run, args.link)
+    # read_caravan_layers(args.run, args.link)
+    build_caravan_layer_graph()
 
 if __name__ == "__main__":
     main()
