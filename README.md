@@ -47,16 +47,6 @@ cd caravan
 ./main.py
 ```
 
-```
-usage: main.py [-h] [--run] [--dotfiles]
-
-caravan - system setup and configuration made easy
-
-optional arguments:
-  -h, --help  show this help message and exit
-  --run   Handle all install directives
-  --link  Handle all link directives
-```
 
 ## Next steps
 * ~~Add support for a *depends* directive so that layers can be stacked~~
