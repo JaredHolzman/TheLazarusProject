@@ -242,7 +242,6 @@ def install_layer(layer_name):
               + "----------- Layer: {0} -----------".format(layer_name)
               + bcolors.ENDC)
     directives = parse_caravan(layer_name)
-    print(directives)
     if directives is None:
         return False
     if (len(directives) > 0 and directives[0][0] == 'depends'):
