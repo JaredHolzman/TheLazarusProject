@@ -7,5 +7,4 @@ link:
   i3_config ~/.i3/config
   dmenurc ~/.dmenurc
   compton.conf ~/.config/compton.conf
-  dunst ~/.config/dunst
   lightsOn.sh /usr/bin/lightsOn

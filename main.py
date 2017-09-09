@@ -94,7 +94,6 @@ def validate_link(link_args, layer_path):
 
     src = path.join(layer_path, link_args[0])
     dest = path.expandvars(path.expanduser(link_args[1]))
-    print(dest)
 
     if (not path.exists(src)):
         create = input("Source file '{0}' does not exist in the layer.\n"
@@ -105,7 +104,7 @@ def validate_link(link_args, layer_path):
         os.makedirs(src)
 
     action = None
-    if path.exists(dest):
+    if (path.exists(dest)):
         # Checks inode to see if same file
         if path.samefile(src, dest) or skip_all:
             action = 's'
@@ -122,12 +121,15 @@ def validate_link(link_args, layer_path):
             )
     # path.exists follows symlinks, so if the path does not exist, but 'dest'
     # is a link, then it is a broken link
-    elif path.islink(dest):
+    elif (path.islink(dest)):
         remove_broken = input("{0} appears to be a broken link.\n".format(dest)
                               + 'Would you like to remove it? [Y/n]: ')
         if remove_broken == 'n':
             return None
         remove(dest)
+    elif (not path.exists(path.dirname(dest))):
+        os.makedirs(path.dirname(dest))
+        
     return (src, dest, action)
 
 def handle_run_directive(command, install_file_path):
@@ -236,13 +238,15 @@ def parse_caravan(layer_name):
     return directives
 
 def install_layer(layer_name):
-    print(layer_name)
+    print(bcolors.OKBLUE
+              + "----------- Layer: {0} -----------".format(layer_name)
+              + bcolors.ENDC)
     directives = parse_caravan(layer_name)
     print(directives)
     if directives is None:
         return False
     if (len(directives) > 0 and directives[0][0] == 'depends'):
-        directives = directives[:1]
+        directives = directives[1:]
     for directive in directives:
         for lines in directive[1]:
             no_errors = handle_directive(layer_name, directive[0], lines)
