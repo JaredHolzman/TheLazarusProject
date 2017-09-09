@@ -1,0 +1,4 @@
+run-arch:
+  "sudo pacman -S --needed --noconfirm compton"
+link:
+  compton.conf ~/.config/compton.conf

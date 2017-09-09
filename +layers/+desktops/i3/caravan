@@ -1,10 +1,10 @@
 depends:
   polybar
   dunst
+  compton
 run-arch:
   "sudo pacman -S --needed --noconfirm manjaro-i3-settings"
 link:
   i3_config ~/.i3/config
   dmenurc ~/.dmenurc
-  compton.conf ~/.config/compton.conf
   lightsOn.sh /usr/bin/lightsOn
