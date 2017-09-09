@@ -38,8 +38,8 @@ link:
   * **run** will run on any platform
 ### Link Directive
 * This directive requires two arguments:
-** The file in the layer you want to symlink
-** The destination on the filesystem where you want to put that link
+  * The file in the layer you want to symlink
+  * The destination on the filesystem where you want to put that link
 ## Usage
 ```
 git clone https://github.com/JaredHolzman/caravan.git
@@ -61,7 +61,7 @@ optional arguments:
 ## Next steps
 * ~~Add support for a *depends* directive so that layers can be stacked~~
 * Improve output formatting and add colors
-* --Add some sort of support for OS specific directives--
-* Build dependancy graph and check for circular dependancies
+* ~~Add some sort of support for OS specific directives~~
+* ~~Build dependancy graph and check for circular dependancies~~
 * Add more layers
 
