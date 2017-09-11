@@ -1,0 +1,2 @@
+run-arch:
+  "sudo pacman -S --needed --noconfirm keepassxc"
