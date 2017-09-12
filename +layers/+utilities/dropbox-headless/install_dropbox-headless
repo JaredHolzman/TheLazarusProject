@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+DIRECTORY='.dropbox-dist'
+if [ ! -d "$DIRECTORY" ]; then
+  wget -O - "https://www.dropbox.com/download?plat=lnx.x86_64" | tar xzf -
+else
+  echo "$DIRECTORY already exists."
+fi

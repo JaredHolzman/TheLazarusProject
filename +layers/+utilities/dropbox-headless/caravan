@@ -1,0 +1,4 @@
+run:
+  install_dropbox-headless
+link:
+  .dropbox-dist/dropboxd /usr/bin/dropboxd

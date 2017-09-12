@@ -129,15 +129,15 @@ def validate_link(link_args, layer_path):
         remove(dest)
     elif (not path.exists(path.dirname(dest))):
         os.makedirs(path.dirname(dest))
-        
     return (src, dest, action)
 
-def handle_run_directive(command, install_file_path):
-    if command == 'run-mac' and platform.uname().system != 'Darwin':
+def handle_run_directive(command, install_file_path, layer_path):
+    if (command == 'run-mac' and platform.uname().system != 'Darwin'):
         return False
-    if command == 'run-ubuntu' and platform.linux_distribution()[0] != 'Ubuntu':
+    if (command == 'run-ubuntu'
+        and platform.linux_distribution()[0] != 'Ubuntu'):
         return False
-    # Hacky way to determine if platform is Arch where checking if
+    # Super duper hacky way to determine if platform is Arch by checking if
     # linux_distribution fails. Bettery was would be to parse '/etc/os-release'
     # or /etc/lsb-release
     if (command == 'run-arch' and
@@ -146,13 +146,15 @@ def handle_run_directive(command, install_file_path):
             return False
 
     if install_file_path.startswith('"') and install_file_path.endswith('"'):
-        command_string = "echo {0} | bash".format(install_file_path)
+        command_string = "cd {0} && echo {1} | bash".format(layer_path,
+                                                            install_file_path)
     else:
         if not os.access(install_file_path, os.X_OK):
             print(bcolors.FAIL + "\"{0}\": Install file not executable!"
                   .format(install_file_path) + bcolors.ENDC)
             return False
-        command_string = "sh -c {0}".format(install_file_path)
+        command_string = "cd {0} && sh -c {1}".format(layer_path,
+                                                      install_file_path)
     print("Running {0}:".format(install_file_path))
     print(bcolors.HEADER + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
           + bcolors.ENDC)
@@ -167,9 +169,10 @@ def handle_directive(layer_name, command, args):
         return False
     if command.startswith('run'):
         if args.startswith('"') and args.endswith('"'):
-            handle_run_directive(command, args)
+            handle_run_directive(command, args, layer_path)
         else:
-            handle_run_directive(command, path.join(layer_path, args))
+            handle_run_directive(command, path.join(layer_path, args),
+                                 layer_path) 
     elif command == 'link':
         link_args = args.split(' ')
         validated_args = validate_link(link_args, layer_path)
