@@ -285,6 +285,7 @@ exec --no-startup-id polybar -r def
 # exec --no-startup-id manjaro-hello
 exec --no-startup-id GDK_SCALE=1; GDK_DPI_SCALE=1.0; nm-applet
 exec --no-startup-id xfce4-power-manager
+exec --no-startup-id dropboxd
 # exec --no-startup-id pamac-tray
 # exec --no-startup-id clipit
 # exec --no-startup-id blueman
